@@ -51,6 +51,7 @@ var connectionString = builder.Configuration["FormFillerConn"];
 connectionString = connectionString.Replace("\\\\", "\\");
 
 builder.Services.AddDbContext<PdfformFillerContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddAuthorization(options =>
 {
