@@ -1,7 +1,9 @@
 ﻿using FormFillerCore.Repository.Interfaces;
 using FormFillerCore.Repository.RepModels;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,63 +12,69 @@ namespace FormFillerCore.Repository.Repositories
 {
     public class DataMapItemRepository : IDataMapItemRepository
     {
+        private readonly PdfformFillerContext _context;
+
+        public DataMapItemRepository(PdfformFillerContext context)
+        {
+            _context = context;
+        }
+
         public List<FormDataMap> DataMapItemsbyID(int did)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                return db.FormDataMaps.Where(x => x.FormDataTypeId == did).ToList();
-            }
+             return  _context.FormDataMaps.Where(x => x.FormDataTypeId == did).ToList();
+        }
+        
+        public async Task<List<FormDataMap>> DataMapItemsbyIDAsync(int did)
+        {
+            Task<List<FormDataMap>> dmap = new Task<List<FormDataMap>>(() => DataMapItemsbyID(did));
+
+            dmap.Start();
+
+            return await dmap;
         }
         public List<FormDataMap> DataMapItemsByName(string form, string datatype)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                int fid = (from forms in db.Forms
-                           where forms.FormName == form
-                           select forms.Fid).First();
+            int fid = (from forms in _context.Forms
+                        where forms.FormName == form
+                        select forms.Fid).First();
 
-                int did = (from dtype in db.FormDataTypes
-                           where dtype.DataType == datatype && dtype.FormId == fid
-                           select dtype.FormDataTypeId).First();
+            int did = (from dtype in _context.FormDataTypes
+                        where dtype.DataType == datatype && dtype.FormId == fid
+                        select dtype.FormDataTypeId).First();
 
-                return db.FormDataMaps.Where(x => x.FormDataTypeId == did).ToList();
-
-            }
+            return _context.FormDataMaps.Where(x => x.FormDataTypeId == did).ToList();
         }
-        public void AddDataMapItems(FormDataMap dmitem)
+        public async Task<List<FormDataMap>> DataMapItemsByNameAsync(string form, string datatype)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                db.FormDataMaps.Add(dmitem);
-                db.SaveChanges();
-            }
-        }
+            Task<List<FormDataMap>> dmap = new Task<List<FormDataMap>>(() => DataMapItemsByName(form, datatype));
 
-        public void DeleteDataMapItem(int did)
+            dmap.Start();
+
+            return await dmap;
+        }
+        public async Task AddDataMapItems(FormDataMap dmitem)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                var entity = db.FormDataMaps.Where(x => x.DataMapId == did).First();
-                db.FormDataMaps.Remove(entity);
-                db.SaveChanges();
-            }
+            await _context.FormDataMaps.AddAsync(dmitem);
+            await _context.SaveChangesAsync();
         }
 
-        public void UpdateDataMapItem(FormDataMap dmitem)
+        public async Task DeleteDataMapItem(int did)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                var entity = db.FormDataMaps.Where(x => x.DataMapId == dmitem.DataMapId).First();
-                db.Entry(entity).CurrentValues.SetValues(dmitem);
-                db.SaveChanges();
-            }
+            FormDataMap entity = await _context.FormDataMaps.Where(x => x.DataMapId == did).FirstAsync();
+            _context.FormDataMaps.Remove(entity);
+            await _context.SaveChangesAsync();
         }
-        public FormDataMap DataMapItemByID(int id)
+
+        public async Task UpdateDataMapItem(FormDataMap dmitem)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                return db.FormDataMaps.Where(x => x.DataMapId == id).First();
-            }
+            FormDataMap entity = await _context.FormDataMaps.Where(x => x.DataMapId == dmitem.DataMapId).FirstAsync();
+            _context.Entry(entity).CurrentValues.SetValues(dmitem);
+            await _context.SaveChangesAsync();
+            
+        }
+        public async Task<FormDataMap> DataMapItemByID(int id)
+        {
+            return await _context.FormDataMaps.Where(x => x.DataMapId == id).FirstAsync();
         }
 
 
@@ -80,65 +88,59 @@ namespace FormFillerCore.Repository.Repositories
                 return fid;
             }
         }
-
-
-        public List<string> FormDataObjectsbyID(int did)
+        
+        public async Task<int> FormIDfromDataIDAsync(int id)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                List<string> results = new List<string>();
+            Task<int> fid = new Task<int>(() => FormIDfromDataID(id));
 
-                results = db.FormDataMaps.Where(y => y.FormDataTypeId == did).Select(x => x.DataObject).Distinct().ToList();
+            fid.Start();
 
-                return results;
-            }
+            return await fid;
         }
 
-        public List<string> FormDataObjectsbyName(string form, string datatype, bool repeatable)
+        public async Task<List<string>> FormDataObjectsbyID(int did)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                int fid = (from forms in db.Forms
-                           where forms.FormName == form
-                           select forms.Fid).First();
+            List<string> results = new List<string>();
 
-                int did = (from dtype in db.FormDataTypes
-                           where dtype.DataType == datatype && dtype.FormId == fid
-                           select dtype.FormDataTypeId).First();
+            results = await _context.FormDataMaps.Where(y => y.FormDataTypeId == did).Select(x => x.DataObject).Distinct().ToListAsync();
 
-                List<string> results = new List<string>();
-
-                if (repeatable == false)
-                {
-                    results = db.FormDataMaps.Where(x => x.FormDataTypeId == did && x.Repeatable == false).Select(x => x.DataObject).Distinct().ToList();
-                }
-                else
-                {
-                    results = db.FormDataMaps.Where(x => x.FormDataTypeId == did && x.Repeatable == true).Select(x => x.DataObject).Distinct().ToList();
-                }
-                return results;
-
-            }
+            return results;
         }
 
-        public List<DataMapChildObject> ChildObjectsByParent(int pid)
+        public async Task<List<string>> FormDataObjectsbyName(string form, string datatype, bool repeatable)
         {
-            using (var db = new PdfformFillerContext())
+
+            int fid = await (from forms in _context.Forms
+                        where forms.FormName == form
+                        select forms.Fid).FirstAsync();
+
+            int did = await (from dtype in _context.FormDataTypes
+                        where dtype.DataType == datatype && dtype.FormId == fid
+                        select dtype.FormDataTypeId).FirstAsync();
+
+            List<string> results = new List<string>();
+
+            if (repeatable == false)
             {
-                return db.DataMapChildObjects.Where(x => x.ParentObject == pid).ToList();
+                results = await _context.FormDataMaps.Where(x => x.FormDataTypeId == did && x.Repeatable == false).Select(x => x.DataObject).Distinct().ToListAsync();
             }
+            else
+            {
+                results = await _context.FormDataMaps.Where(x => x.FormDataTypeId == did && x.Repeatable == true).Select(x => x.DataObject).Distinct().ToListAsync();
+            }
+            return results;
         }
 
-
-        public void AddChildItem(DataMapChildObject citem)
+        public async Task<List<DataMapChildObject>> ChildObjectsByParent(int pid)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                db.DataMapChildObjects.Add(citem);
-                db.SaveChanges();
-            }
+            return await _context.DataMapChildObjects.Where(x => x.ParentObject == pid).ToListAsync();
         }
 
+        public async Task AddChildItem(DataMapChildObject citem)
+        {
+            await _context.DataMapChildObjects.AddAsync(citem);
+            await _context.SaveChangesAsync();
+        }
 
         public List<string> ChildDataObjectsByParentName(string datao, string fname, string dtype)
         {

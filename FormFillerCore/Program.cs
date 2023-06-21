@@ -8,6 +8,10 @@ using Azure.Identity;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
 using FormFillerCore.Repository.RepModels;
+using FormFillerCore.Repository.Interfaces;
+using FormFillerCore.Repository.Repositories;
+using FormFillerCore.Service.Interfaces;
+using FormFillerCore.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +61,13 @@ builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
 });
+
+builder.Services.AddScoped<IDataMapItemRepository, DataMapItemRepository>();
+builder.Services.AddScoped<IDataTypeRepository, DataTypeRepository>();
+builder.Services.AddScoped<IFormRepository, FormRepository>();
+builder.Services.AddScoped<IDataMapService, DataMapService>();
+builder.Services.AddScoped<IFormAPIService, FormAPIService>();
+builder.Services.AddScoped<IFormsService, FormsService>();
 
 builder.Services.AddControllersWithViews(options =>
 {

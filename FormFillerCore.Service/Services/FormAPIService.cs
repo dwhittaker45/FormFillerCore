@@ -20,6 +20,7 @@ using iText.Kernel.Font;
 using iText.Layout.Borders;
 using iText.Forms.Fields;
 using iText.Forms;
+using System.Reflection.PortableExecutable;
 
 namespace FormFillerCore.Service.Services
 {
@@ -212,29 +213,27 @@ namespace FormFillerCore.Service.Services
                 }
             }
 
-
-
             if (repeats == true)
             {
-                Document doc = new Document();
-                MemoryStream repms = new MemoryStream();
-
-
-                using (PdfCopy pcopy = new PdfSmartCopy(doc, repms))
+                using (MemoryStream repms = new MemoryStream())
                 {
+                    PdfDocument newDoc = new PdfDocument(new PdfWriter(repms));
+
                     int pages = TotalRepeatPages(values, frm);
-                    doc.Open();
                     for (int i = 0; i <= pages - 1; i++)
                     {
                         using (MemoryStream ms = new MemoryStream())
                         {
-                            PdfReader read = new PdfReader(frm.Form);
-                            using (PdfStamper repeatstamper = new PdfStamper(read, ms))
+                            MemoryStream readFrm = new MemoryStream(frm.Form);
+                            
+                            using (PdfReader read = new PdfReader(readFrm))
                             {
+                                PdfDocument pdf = new PdfDocument(read, new PdfWriter(ms));
+
+                                PdfAcroForm stamper = PdfAcroForm.GetAcroForm(pdf, false);
 
                                 foreach (KeyValuePair<string, object> kvp in values)
                                 {
-
 
                                     if (kvp.Value is IList)
                                     {
@@ -253,7 +252,7 @@ namespace FormFillerCore.Service.Services
 
                                                 //}
 
-                                                repeatstamper.AcroFields.SetField(kvp.Key, tvals[i]);
+                                                stamper.GetField(kvp.Key).SetValue(tvals[i]);
                                             }
 
 
@@ -275,7 +274,7 @@ namespace FormFillerCore.Service.Services
                                                         //js = js + string.Format("var f = this.getField('{0}'); f.value = 1 * {1};", formitems.Key + Convert.ToString(r + 1),formitems.Value);
                                                         //}
 
-                                                        repeatstamper.AcroFields.SetField(formitems.Key.ToString() + Convert.ToString(r + 1), formitems.Value.ToString());
+                                                        stamper.GetField(formitems.Key.ToString() + Convert.ToString(r + 1)).SetValue(formitems.Value.ToString());
                                                     }
                                                 }
 
@@ -292,27 +291,23 @@ namespace FormFillerCore.Service.Services
                                         //{
                                         //js = js + string.Format("var f = this.getField('{0}'); f.value = 1 * f.value;", kvp.Key,kvp.Value);
                                         //}
-                                        repeatstamper.AcroFields.SetField(kvp.Key, kvp.Value.ToString());
+                                        stamper.GetField(kvp.Key).SetValue(kvp.Value.ToString());
                                     }
                                 }
 
                                 //repeatstamper.JavaScript = js;
-                                repeatstamper.FormFlattening = true;
+                                stamper.FlattenFields();
+                                pdf.Close();
                             }
 
+                            PdfDocument tempPdf = new PdfDocument(new PdfReader(ms));
 
-                            read.Close();
-
-                            PdfReader tempPdf = new PdfReader(ms.ToArray());
-
-                            PdfImportedPage page = pcopy.GetImportedPage(tempPdf, 1);
-
-                            pcopy.AddPage(page);
+                            tempPdf.CopyPagesTo(1, 1, newDoc);
 
                             tempPdf.Close();
                         }
                     }
-                    doc.Close();
+                    newDoc.Close();
                     return repms.ToArray();
                 }
             }
@@ -333,7 +328,7 @@ namespace FormFillerCore.Service.Services
 
                                     if (values[fields.Key.ToString()].ToString() != fields.Key.ToString())
                                     {
-                                        stamper.GetField(fields.Key.ToString()).SetValue(values[fields.Key.ToString()].ToString())  );
+                                        stamper.GetField(fields.Key.ToString()).SetValue(values[fields.Key.ToString()].ToString());
                                     }
                                 }
                             }
