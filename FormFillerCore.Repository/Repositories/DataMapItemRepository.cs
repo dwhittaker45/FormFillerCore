@@ -142,73 +142,63 @@ namespace FormFillerCore.Repository.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public List<string> ChildDataObjectsByParentName(string datao, string fname, string dtype)
+        public async Task<List<string>> ChildDataObjectsByParentName(string datao, string fname, string dtype)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                int did = (from datat in db.FormDataTypes
-                           join formt in db.Forms on datat.FormId equals formt.Fid
-                           where formt.FormName == fname && datat.DataType == dtype
-                           select datat.FormDataTypeId).First();
+            int did = (from datat in _context.FormDataTypes
+                        join formt in _context.Forms on datat.FormId equals formt.Fid
+                        where formt.FormName == fname && datat.DataType == dtype
+                        select datat.FormDataTypeId).First();
 
-                int pid = (from objects in db.FormDataMaps
-                           where objects.DataObject == datao && objects.FormDataTypeId == did
-                           select objects.DataMapId).First();
+            int pid = (from objects in _context.FormDataMaps
+                        where objects.DataObject == datao && objects.FormDataTypeId == did
+                        select objects.DataMapId).First();
 
-                List<string> results = new List<string>();
+            List<string> results = new List<string>();
 
-                results = db.DataMapChildObjects.Where(x => x.ParentObject == pid).Select(y => y.DataObject).Distinct().ToList();
+            results = await _context.DataMapChildObjects.Where(x => x.ParentObject == pid).Select(y => y.DataObject).Distinct().ToListAsync();
 
-                return results;
-            }
+            return results;
         }
 
 
-        public int GetItemCountbyID(int did)
+        public async Task<int> GetItemCountbyID(int did)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                return (int)db.FormDataMaps.Where(x => x.DataMapId == did).Select(y => y.ItemCount).First();
-            }
+            var iCount = await _context.FormDataMaps.Where(x => x.DataMapId == did).Select(y => y.ItemCount).FirstAsync();
+
+            var ret = iCount == null ? default(int) : (int)iCount;
+
+            return ret;
         }
 
-        public int GetItemCountbyName(string dname)
+        public async Task<int> GetItemCountbyName(string dname)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                return (int)db.FormDataMaps.Where(x => x.DataObject == dname).Select(y => y.ItemCount).First();
-            }
-        }
+            var iCount = await _context.FormDataMaps.Where(x => x.DataObject == dname).Select(y => y.ItemCount).FirstAsync();
 
+            var ret = iCount == null ? default(int) : (int)iCount;
 
-        public DataMapChildObject ChildObjectbynames(string cname, string pname, int dtype)
-        {
-            using (var db = new PdfformFillerContext())
-            {
-                int pid = (from parents in db.FormDataMaps
-                           where parents.DataObject == pname && parents.FormDataTypeId == dtype
-                           select parents.DataMapId).First();
-
-                return db.DataMapChildObjects.Where(x => x.ParentObject == pid && x.DataObject == cname).First();
-            }
+            return ret;
         }
 
 
-        public FormDataMap GetDataMapItem(string dname, string foname, int dtype)
+        public async Task<DataMapChildObject> ChildObjectbynames(string cname, string pname, int dtype)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                return db.FormDataMaps.Where(x => x.DataObject == dname && x.FormObject == foname && x.FormDataTypeId == dtype).First();
-            }
+            int pid = (from parents in _context.FormDataMaps
+                        where parents.DataObject == pname && parents.FormDataTypeId == dtype
+                        select parents.DataMapId).First();
+
+            return await _context.DataMapChildObjects.Where(x => x.ParentObject == pid && x.DataObject == cname).FirstAsync();
         }
 
 
-        public string GetDataItemFormatByName(string dname, int dtype)
+        public async Task<FormDataMap> GetDataMapItem(string dname, string foname, int dtype)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                return db.FormDataMaps.Where(x => x.FormObject == dname && x.FormDataTypeId == dtype).Select(y => y.DataFormat).First();
-            }
+            return await _context.FormDataMaps.Where(x => x.DataObject == dname && x.FormObject == foname && x.FormDataTypeId == dtype).FirstAsync();
+        }
+
+
+        public async Task<string> GetDataItemFormatByName(string dname, int dtype)
+        {
+            return await _context.FormDataMaps.Where(x => x.FormObject == dname && x.FormDataTypeId == dtype).Select(y => y.DataFormat).FirstAsync();
         }
     }
 }

@@ -13,12 +13,12 @@ namespace FormFillerCore.Repository.Interfaces
         Task<List<FormDataMap>> DataMapItemsbyIDAsync(int did);
         List<FormDataMap> DataMapItemsByName(string form, string datatype);
         Task<List<FormDataMap>> DataMapItemsByNameAsync(string form, string dataType);
-        FormDataMap GetDataMapItem(string dname, string foname, int dtype);
+        Task<FormDataMap> GetDataMapItem(string dname, string foname, int dtype);
         Task<List<DataMapChildObject>> ChildObjectsByParent(int pid);
-        DataMapChildObject ChildObjectbynames(string cname, string pname, int dtype);
+        Task<DataMapChildObject> ChildObjectbynames(string cname, string pname, int dtype);
         Task<List<string>> FormDataObjectsbyID(int did);
         Task<List<string>> FormDataObjectsbyName(string form, string datatype, bool repeatable);
-        List<string> ChildDataObjectsByParentName(string datao, string form, string datatype);
+        Task<List<string>> ChildDataObjectsByParentName(string datao, string form, string datatype);
         Task AddChildItem(DataMapChildObject citem);
         Task<FormDataMap> DataMapItemByID(int id);
         int FormIDfromDataID(int id);
@@ -26,8 +26,8 @@ namespace FormFillerCore.Repository.Interfaces
         Task AddDataMapItems(FormDataMap dmitem);
         Task DeleteDataMapItem(int did);
         Task UpdateDataMapItem(FormDataMap dmitem);
-        int GetItemCountbyID(int did);
-        int GetItemCountbyName(string dname);
-        string GetDataItemFormatByName(string dname, int dtype);
+        Task<int> GetItemCountbyID(int did);
+        Task<int> GetItemCountbyName(string dname);
+        Task<string> GetDataItemFormatByName(string dname, int dtype);
     }
 }
