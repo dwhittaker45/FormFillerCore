@@ -1,5 +1,6 @@
 ﻿using FormFillerCore.Repository.Interfaces;
 using FormFillerCore.Repository.RepModels;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,103 +11,83 @@ namespace FormFillerCore.Repository.Repositories
 {
     public class FormRepository : IFormRepository
     {
-        public List<Form> AllForms()
+
+        private readonly PdfformFillerContext _context;
+
+        public FormRepository(PdfformFillerContext context)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                return db.Forms.Where(x => x.Active == true).ToList();
-            }
+            _context = context;
         }
 
-        public Form FormByName(string name)
+        public async Task<List<Form>> AllForms()
         {
-            using (var db = new PdfformFillerContext())
-            {
-                var c = from Forms in db.Forms
-                        where Forms.FormName == name
-                        select Forms;
-
-                return c.SingleOrDefault();
-            }
+            return await _context.Forms.Where(x => x.Active == true).ToListAsync();
         }
 
-        public Form FormByID(int fid)
+        public async Task<Form> FormByName(string name)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                var c = from Forms in db.Forms
-                        where Forms.Fid == fid
-                        select Forms;
+            var c = from Forms in _context.Forms
+                    where Forms.FormName == name
+                    select Forms;
 
-
-                return c.SingleOrDefault();
-            }
+            return await c.SingleOrDefaultAsync();
         }
 
-        public int FormAdd(Form formitem)
+        public async Task<Form> FormByID(int fid)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                db.Forms.Add(formitem);
-                db.SaveChanges();
-                return formitem.Fid;
-            }
+            var c = from Forms in _context.Forms
+                    where Forms.Fid == fid
+                    select Forms;
 
+
+            return await c.SingleOrDefaultAsync();
         }
 
-        public void FormUpdate(Form formitem)
+        public async Task<int> FormAdd(Form formitem)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                var entity = db.Forms.Where(f => f.Fid == formitem.Fid).First();
-                db.Entry(entity).CurrentValues.SetValues(formitem);
-                db.SaveChanges();
-            }
+            await _context.Forms.AddAsync(formitem);
+            await _context.SaveChangesAsync(); ;
+            return formitem.Fid;
         }
 
-        public void FormDelete(int fid)
+        public async Task FormUpdate(Form formitem)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                var entity = db.Forms.Where(f => f.Fid == fid).First();
+            var entity = await _context.Forms.Where(f => f.Fid == formitem.Fid).FirstAsync();
+            _context.Entry(entity).CurrentValues.SetValues(formitem);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task FormDelete(int fid)
+        {
+                var entity = await _context.Forms.Where(f => f.Fid == fid).FirstAsync();
 
                 entity.Active = false;
                 //db.Entry(entity).CurrentValues.SetValues(;
-                db.SaveChanges();
-            }
+                await _context.SaveChangesAsync();
         }
 
 
-        public byte[] GetFile(int fid)
+        public async Task<byte[]> GetFile(int fid)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                byte[] frm = db.Forms.Where(f => f.Fid == fid).First().Form1;
+            byte[] frm = await _context.Forms.Where(f => f.Fid == fid).Select(fr => fr.Form1).FirstAsync();
 
-                return frm;
-            }
+            return frm;
         }
 
 
-        public string FileTypeByID(int fid)
+        public async Task<string> FileTypeByID(int fid)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                string ftype = db.Forms.Where(f => f.Fid == fid).First().FileType;
+            string ftype = await _context.Forms.Where(f => f.Fid == fid).Select(ft => ft.FileType).FirstAsync();
 
-                return ftype;
-            }
+            return ftype;
         }
 
 
-        public int FormIDByDataType(int did)
+        public async Task<int> FormIDByDataType(int did)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                int frm = db.FormDataTypes.Where(f => f.FormDataTypeId == did).First().FormId;
+            int frm = await _context.FormDataTypes.Where(f => f.FormDataTypeId == did).Select(fr => fr.FormId).FirstAsync();
 
-                return frm;
-            }
+            return frm;
         }
     }
 }

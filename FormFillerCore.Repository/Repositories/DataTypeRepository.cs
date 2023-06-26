@@ -1,5 +1,6 @@
 ﻿using FormFillerCore.Repository.Interfaces;
 using FormFillerCore.Repository.RepModels;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,17 @@ namespace FormFillerCore.Repository.Repositories
 {
     public class DataTypeRepository : IDataTypeRepository
     {
-        public List<FormDataType> DataTypesByForm(int fid)
+
+        private readonly PdfformFillerContext _context;
+
+        public DataTypeRepository(PdfformFillerContext context)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                return db.FormDataTypes.Where(x => x.FormId == fid).ToList();
-            }
+            _context = context;
+        }
+
+        public async Task<List<FormDataType>> DataTypesByForm(int fid)
+        {
+            return await _context.FormDataTypes.Where(x => x.FormId == fid).ToListAsync();
         }
 
         public void AddDataType(FormDataType dtype)

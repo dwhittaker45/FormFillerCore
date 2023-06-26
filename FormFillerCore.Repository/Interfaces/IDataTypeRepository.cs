@@ -9,7 +9,7 @@ namespace FormFillerCore.Repository.Interfaces
 {
     public interface IDataTypeRepository
     {
-        List<FormDataType> DataTypesByForm(int fid);
+        Task<List<FormDataType>> DataTypesByForm(int fid);
         string DataTypeByID(int did);
         void AddDataType(FormDataType dtype);
         void UpdateDataType(FormDataType dtype);

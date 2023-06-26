@@ -9,14 +9,14 @@ namespace FormFillerCore.Repository.Interfaces
 {
     public interface IFormRepository
     {
-        List<Form> AllForms();
-        Form FormByName(string name);
-        Form FormByID(int fid);
-        byte[] GetFile(int fid);
-        string FileTypeByID(int fid);
-        int FormAdd(Form formitem);
-        void FormUpdate(Form formitem);
-        void FormDelete(int fid);
-        int FormIDByDataType(int did);
+        Task<List<Form>> AllForms();
+        Task<Form> FormByName(string name);
+        Task<Form> FormByID(int fid);
+        Task<byte[]> GetFile(int fid);
+        Task<string> FileTypeByID(int fid);
+        Task<int> FormAdd(Form formitem);
+        Task FormUpdate(Form formitem);
+        Task FormDelete(int fid);
+        Task<int> FormIDByDataType(int did);
     }
 }
