@@ -10,7 +10,7 @@ namespace FormFillerCore.Service.Interfaces
     public interface IFormsService
     {
         List<FormModel> AllForms();
-        FormModel FormByName(string name);
+        Task<FormModel> FormByName(string name);
         FormModel FormByID(int fid);
         FullFormModel FullFormInfo(int fid);
         byte[] GetFile(int fid);

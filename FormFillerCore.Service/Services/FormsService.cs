@@ -30,9 +30,11 @@ namespace FormFillerCore.Service.Services
             return _mapper.Map<List<FormModel>>(_formRepository.AllForms());
         }
 
-        public FormModel FormByName(string name)
+        public async Task<FormModel> FormByName(string name)
         {
-            return _mapper.Map<FormModel>(_formRepository.FormByName(name));
+            var fMod = await _formRepository.FormByName(name);
+
+            return _mapper.Map<FormModel>(fMod);
         }
 
         public FormModel FormByID(int fid)

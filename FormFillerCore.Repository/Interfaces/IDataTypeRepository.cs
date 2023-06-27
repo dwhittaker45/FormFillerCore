@@ -10,10 +10,10 @@ namespace FormFillerCore.Repository.Interfaces
     public interface IDataTypeRepository
     {
         Task<List<FormDataType>> DataTypesByForm(int fid);
-        string DataTypeByID(int did);
-        void AddDataType(FormDataType dtype);
-        void UpdateDataType(FormDataType dtype);
-        void DeleteDataTypebyID(int did);
-        void DeleteDataTypeByForm(int fid);
+        Task<string> DataTypeByID(int did);
+        Task AddDataType(FormDataType dtype);
+        Task UpdateDataType(FormDataType dtype);
+        Task DeleteDataTypebyID(int did);
+        Task DeleteDataTypeByForm(int fid);
     }
 }

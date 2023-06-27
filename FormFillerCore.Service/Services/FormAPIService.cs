@@ -37,9 +37,9 @@ namespace FormFillerCore.Service.Services
             _dataTypeRepository = dataTypeRepository;
         }
 
-        public Dictionary<string, object> GetDataSchema(string fname, string dtype)
+        public async Task<Dictionary<string, object>> GetDataSchema(string fname, string dtype)
         {
-            List<string> ditems = _DataMapRepository.FormDataObjectsbyName(fname, dtype, false);
+            List<string> ditems = await _DataMapRepository.FormDataObjectsbyName(fname, dtype, false);
 
             Dictionary<string, object> js = new Dictionary<string, object>();
 
@@ -48,12 +48,12 @@ namespace FormFillerCore.Service.Services
                 js.Add(item, item);
             }
 
-            List<string> ritems = _DataMapRepository.FormDataObjectsbyName(fname, dtype, true);
+            List<string> ritems = await _DataMapRepository.FormDataObjectsbyName(fname, dtype, true);
             List<Dictionary<string, object>> rditems = new List<Dictionary<string, object>>();
             Dictionary<string, object> citem = new Dictionary<string, object>();
             foreach (string item in ritems)
             {
-                List<string> cobjects = _DataMapRepository.ChildDataObjectsByParentName(item, fname, dtype);
+                List<string> cobjects = await _DataMapRepository.ChildDataObjectsByParentName(item, fname, dtype);
 
                 rditems = new List<Dictionary<string, object>>();
 
@@ -84,6 +84,15 @@ namespace FormFillerCore.Service.Services
 
             return jsonc;
         }
+        public async Task<string> XmlConvertAsync(byte[] xdoc)
+        {
+            Task<string> xmlTask = new Task<string>(() => XmlConvert(xdoc));
+
+            xmlTask.Start();
+
+            return await xmlTask;
+        }
+
 
         public byte[] BuildForm(Dictionary<string, object> values, string title)
         {
@@ -157,31 +166,40 @@ namespace FormFillerCore.Service.Services
                 return ms.ToArray();
             }
         }
-
-        public byte[] FillForm(string fname, Dictionary<string, object> values)
+        public async Task<byte[]> BuildFormAsync(Dictionary<string, object> values, string title)
         {
-            FormModel form = _formsService.FormByName(fname);
+            Task<byte[]> bfTask = new Task<byte[]>(() => BuildForm(values,title));
 
-            return StampPDFForm(form, values);
+            bfTask.Start();
+
+            return await bfTask;
+        }
+        public async Task<byte[]> FillForm(string fname, Dictionary<string, object> values)
+        {
+            FormModel form = await _formsService.FormByName(fname);
+
+            return await StampPDFFormAsync(form, values);
 
             //Git test
         }
 
-        public byte[] FillForm(string fname, Dictionary<string, object> values, string OptReplace)
+        public async Task<byte[]> FillForm(string fname, Dictionary<string, object> values, string OptReplace)
         {
-            FormModel form = _formsService.FormByName(fname);
+            FormModel form = await _formsService.FormByName(fname);
 
             FormDataType fdt;
 
-            fdt = _dataTypeRepository.DataTypesByForm((int)form.fid).First();
+            fdt = _dataTypeRepository.DataTypesByForm((int)form.fid).Result.First();
 
             if (fdt.DataType != "HTMLSTRING")
             {
-                return StampPDFForm(form, values);
+                return await StampPDFFormAsync(form, values);
             }
             else
             {
-                return Encoding.ASCII.GetBytes(StampEMAILForm(OptReplace, values));
+                var stampedEmail = await StampEMAILFormAsync(OptReplace, values);
+
+                return Encoding.ASCII.GetBytes(stampedEmail);
             }
         }
 
@@ -197,6 +215,15 @@ namespace FormFillerCore.Service.Services
             }
 
             return strReplacedEmail;
+        }
+
+        private async Task<string> StampEMAILFormAsync(string strEmail, Dictionary<string, object> values)
+        {
+            Task<string> eTask = new Task<string>(() => StampEMAILForm(strEmail, values));
+
+            eTask.Start();
+
+            return await eTask;
         }
 
         private byte[] StampPDFForm(FormModel frm, Dictionary<string, object> values)
@@ -262,7 +289,7 @@ namespace FormFillerCore.Service.Services
                                             List<Dictionary<string, object>> vals = (List<Dictionary<string, object>>)kvp.Value;
 
                                             int r = 0;
-                                            int tItems = _DataMapRepository.GetItemCountbyName(kvp.Key);
+                                            int tItems = (int)_DataMapRepository.GetItemCountbyName(kvp.Key).Result;
                                             while (r <= tItems - 1 && vals.Count > 0)
                                             {
                                                 foreach (KeyValuePair<string, object> formitems in vals[0])
@@ -343,6 +370,15 @@ namespace FormFillerCore.Service.Services
             }
         }
 
+        private async Task<byte[]> StampPDFFormAsync(FormModel frm, Dictionary<string, object> values)
+        {
+            Task<byte[]> pdfStamp = new Task<byte[]>(() => StampPDFForm(frm, values));
+
+            pdfStamp.Start();
+
+            return await pdfStamp;
+        }
+
         private int TotalRepeatPages(Dictionary<string, object> values, FormModel frm)
         {
 
@@ -357,7 +393,7 @@ namespace FormFillerCore.Service.Services
                     {
                         List<Dictionary<string, object>> vals = (List<Dictionary<string, object>>)kvp.Value;
 
-                        tItems = _DataMapRepository.GetItemCountbyName(kvp.Key);
+                        tItems = _DataMapRepository.GetItemCountbyName(kvp.Key).Result;
 
                         int oitems = (vals.Count > tItems) ? (vals.Count % tItems) : 0;
 

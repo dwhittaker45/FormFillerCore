@@ -24,57 +24,42 @@ namespace FormFillerCore.Repository.Repositories
             return await _context.FormDataTypes.Where(x => x.FormId == fid).ToListAsync();
         }
 
-        public void AddDataType(FormDataType dtype)
+        public async Task AddDataType(FormDataType dtype)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                db.FormDataTypes.Add(dtype);
-                db.SaveChanges();
-            }
+            await _context.FormDataTypes.AddAsync(dtype);
+            await _context.SaveChangesAsync();
         }
 
-        public void UpdateDataType(FormDataType dtype)
+        public async Task UpdateDataType(FormDataType dtype)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                var entity = db.FormDataTypes.Where(x => x.FormDataTypeId == dtype.FormDataTypeId).First();
-                db.Entry(entity).CurrentValues.SetValues(dtype);
-                db.SaveChanges();
-            }
+            var entity = await _context.FormDataTypes.Where(x => x.FormDataTypeId == dtype.FormDataTypeId).FirstAsync();
+            _context.Entry(entity).CurrentValues.SetValues(dtype);
+            await _context.SaveChangesAsync();
         }
-        public void DeleteDataTypebyID(int did)
+        public async Task DeleteDataTypebyID(int did)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                FormDataType dtype = db.FormDataTypes.Where(x => x.FormDataTypeId == did).First();
-                db.FormDataTypes.Remove(dtype);
-                db.SaveChanges();
-            }
+            FormDataType dtype = await _context.FormDataTypes.Where(x => x.FormDataTypeId == did).FirstAsync();
+            _context.FormDataTypes.Remove(dtype);
+            await _context.SaveChangesAsync();
         }
 
-        public void DeleteDataTypeByForm(int fid)
+        public async Task DeleteDataTypeByForm(int fid)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                List<FormDataType> dtypes = db.FormDataTypes.Where(x => x.FormId == fid).ToList();
+            List<FormDataType> dtypes = await _context.FormDataTypes.Where(x => x.FormId == fid).ToListAsync();
 
-                foreach (FormDataType dtype in dtypes)
-                {
-                    db.FormDataTypes.Remove(dtype);
-                }
-                db.SaveChanges();
+            foreach (FormDataType dtype in dtypes)
+            {
+                _context.FormDataTypes.Remove(dtype);
             }
+            await _context.SaveChangesAsync();
         }
 
 
-        public string DataTypeByID(int did)
+        public async Task<string> DataTypeByID(int did)
         {
-            using (var db = new PdfformFillerContext())
-            {
-                string dtype = db.FormDataTypes.Where(d => d.FormDataTypeId == did).First().DataType;
+            string dtype = await _context.FormDataTypes.Where(d => d.FormDataTypeId == did).Select(dt => dt.DataType).FirstAsync();
 
-                return dtype;
-            }
+            return dtype;
         }
     }
 }

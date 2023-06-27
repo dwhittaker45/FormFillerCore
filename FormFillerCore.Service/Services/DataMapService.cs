@@ -30,9 +30,10 @@ namespace FormFillerCore.Service.Services
             _mapper = mapper;
         }
 
-        public List<DataMapItemModel> GetFormDataMap(int did)
+        public async Task<List<DataMapItemModel>> GetFormDataMap(int did)
         {
-            var mitems = _mapper.Map<List<DataMapItemModel>>(_DataMapRepository.DataMapItemsbyID(did));
+            var data = await _DataMapRepository.DataMapItemsbyIDAsync(did);
+            var mitems = _mapper.Map<List<DataMapItemModel>>(data);
             return mitems;
         }
 
@@ -58,41 +59,53 @@ namespace FormFillerCore.Service.Services
             return results;
         }
 
-        public void AddMapItem(DataMapItemModel dm)
+        public async Task<List<string>> GetFormFieldsAsync(int fid)
         {
-            _DataMapRepository.AddDataMapItems(_mapper.Map<FormDataMap>(dm));
+            Task<List<string>> gffTask = new Task<List<string>>(() => GetFormFields(fid));
+
+            gffTask.Start();
+
+            return await gffTask;
         }
 
-        public void UpdateMapItem(DataMapItemModel dm)
+        public async Task AddMapItem(DataMapItemModel dm)
+        {
+            await _DataMapRepository.AddDataMapItems(_mapper.Map<FormDataMap>(dm));
+        }
+
+        public async Task UpdateMapItem(DataMapItemModel dm)
         {
             throw new NotImplementedException();
         }
 
-        public void DeleteMapItem(int id)
+        public async Task DeleteMapItem(int id)
         {
-            _DataMapRepository.DeleteDataMapItem(id);
+            await _DataMapRepository.DeleteDataMapItem(id);
         }
-        public List<DataMapItemModel> GetFormDataMapByName(string fname, string dtype)
+        public async Task<List<DataMapItemModel>> GetFormDataMapByName(string fname, string dtype)
         {
-            return _mapper.Map<List<DataMapItemModel>>(_DataMapRepository.DataMapItemsByName(fname, dtype));
+            var dmItems = await _DataMapRepository.DataMapItemsByNameAsync(fname, dtype);
+            return _mapper.Map<List<DataMapItemModel>>(dmItems);
         }
 
-        public DataMapItemModel GetMapItem(int id)
+        public async Task<DataMapItemModel> GetMapItem(int id)
         {
-            var item = _mapper.Map<DataMapItemModel>(_DataMapRepository.DataMapItemByID(id));
+            var dmitem = await _DataMapRepository.DataMapItemByID(id);
+
+            var item = _mapper.Map<DataMapItemModel>(dmitem);
 
             return item;
         }
 
-        public int GetFormIDFromMapItem(int id)
+        public async Task<int> GetFormIDFromMapItem(int id)
         {
-            return _DataMapRepository.FormIDfromDataID(id);
+            return await _DataMapRepository.FormIDfromDataIDAsync(id);
         }
 
 
-        public void AutoMapItems(int did, int fid)
+        public async Task AutoMapItems(int did, int fid)
         {
-            List<string> fields = GetFormFields(fid);
+            List<string> fields = await GetFormFieldsAsync(fid);
             DataMapItemModel dm = new DataMapItemModel();
 
             foreach (string s in fields)
@@ -101,13 +114,14 @@ namespace FormFillerCore.Service.Services
                 dm.DataObject = s;
                 dm.FormObject = s;
 
-                AddMapItem(dm);
+                await AddMapItem(dm);
             }
         }
-        public Dictionary<string, object> FillMap(string fname, string dtype, Dictionary<string, object> values)
+        public async Task<Dictionary<string, object>> FillMap(string fname, string dtype, Dictionary<string, object> values)
         {
             string val;
-            IEnumerable<DataMapItemModel> Objects = _mapper.Map<IEnumerable<DataMapItemModel>>(_DataMapRepository.DataMapItemsByName(fname, dtype).ToList());
+
+            IEnumerable<DataMapItemModel> Objects = _mapper.Map<IEnumerable<DataMapItemModel>>(_DataMapRepository.DataMapItemsByNameAsync(fname, dtype).Result.ToList()); ;
 
             List<DataMapItemModel> ParentObjects = Objects.Where(x => x.ChildFormObjects == true).ToList();
             List<DataMapItemModel> CheckObjects = Objects.Where(x => x.CheckValue != null && x.CheckValue != "").ToList();
@@ -122,7 +136,8 @@ namespace FormFillerCore.Service.Services
 
             foreach (DataMapItemModel ditem in ParentObjects)
             {
-                ChildObjects = _mapper.Map<IEnumerable<ChildMapItemModel>>(_DataMapRepository.ChildObjectsByParent(Convert.ToInt32(ditem.DataMapID)).ToList());
+
+                ChildObjects = _mapper.Map<IEnumerable<ChildMapItemModel>>(_DataMapRepository.ChildObjectsByParent(Convert.ToInt32(ditem.DataMapID)).Result.ToList());
 
                 ChildCheckObjects = ChildObjects.Where(x => x.CheckValue != null).ToList();
 
@@ -258,9 +273,9 @@ namespace FormFillerCore.Service.Services
 
             if (exprs.Count > 0)
             {
-                FormModel frm = _formsService.FormByName(fname);
+                FormModel frm = await _formsService.FormByName(fname);
 
-                FillCalculatedFields(exprs, ref datamap, frm, did, dformats);
+                datamap = await FillCalculatedFieldsAsync(exprs, datamap, frm, did, dformats);
             }
 
             return datamap;
@@ -348,7 +363,7 @@ namespace FormFillerCore.Service.Services
 
                                         DataMapItemModel parentitem = _mapper.Map<DataMapItemModel>(_DataMapRepository.DataMapItemByID(Convert.ToInt32(runitem.ParentObject)));
 
-                                        int tItems = _DataMapRepository.GetItemCountbyID((int)runitem.ParentObject);
+                                        int tItems = Convert.ToInt32(_DataMapRepository.GetItemCountbyID((int)runitem.ParentObject));
 
                                         List<Dictionary<string, object>> runobj = new List<Dictionary<string, object>>();
 
@@ -470,6 +485,18 @@ namespace FormFillerCore.Service.Services
                 }
             }
         }
+
+        public async Task<Dictionary<string, object>> FillCalculatedFieldsAsync(Queue<KeyValuePair<string, object>> expressions, Dictionary<string, object> dmap, FormModel frm, int dtype, Dictionary<string, string> dformats)
+        {
+            Task calcFields = new Task(() => FillCalculatedFields(expressions,ref dmap,frm,dtype,dformats));
+
+            calcFields.Start();
+
+            await calcFields;
+
+            return dmap;
+        }
+
         public KeyValuePair<string, object> ReplaceFormField(string field, byte[] pdfform, int dtype, Dictionary<string, object> dmap)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
@@ -576,7 +603,14 @@ namespace FormFillerCore.Service.Services
             return noval;
         }
 
+        public async Task<KeyValuePair<string, object>> ReplaceFormFieldAsync(string field, byte[] pdfform, int dtype, Dictionary<string, object> dmap)
+        {
+            Task<KeyValuePair<string, object>> kvp = new Task<KeyValuePair<string, object>>(() => ReplaceFormField(field, pdfform, dtype, dmap));
 
+            kvp.Start();
+
+            return await kvp;
+        }
 
         public string FormatValue(string val, string format)
         {
