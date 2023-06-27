@@ -9,15 +9,16 @@ namespace FormFillerCore.Service.Interfaces
 {
     public interface IFormsService
     {
-        List<FormModel> AllForms();
+        Task<List<FormModel>> AllForms();
         Task<FormModel> FormByName(string name);
-        FormModel FormByID(int fid);
-        FullFormModel FullFormInfo(int fid);
-        byte[] GetFile(int fid);
-        string FileTypeByID(int fid);
-        void FormAdd(FullFormModel formitem);
-        void FormUpdate(FormModel formitem);
-        void FormDelete(int fid);
-        int GetFormIDbyDataType(int did);
+        Task<FormModel> FormByID(int fid);
+        Task<FullFormModel> FullFormInfo(int fid);
+        Task<byte[]> GetFile(int fid);
+        Task<string> FileTypeByID(int fid);
+        Task FormAdd(FullFormModel formitem);
+        Task FormUpdate(FormModel formitem);
+        Task FormDelete(int fid);
+        Task<int> GetFormIDbyDataType(int did);
+        Task<string> DataTypeByID(int did);
     }
 }

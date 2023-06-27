@@ -9,9 +9,14 @@ using System.Text;
 using System.Net.Http;
 using System.Web;
 using System.IO;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Identity.Web.Resource;
 
 namespace FormFillerCore.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [RequiredScope("default")]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class FormAPIController : ControllerBase
@@ -26,12 +31,12 @@ namespace FormFillerCore.Controllers
             _formApiService = formApiService;
         }
         [HttpPost]
-        public HttpResponseMessage FillForm([FromQuery] string Form, [FromQuery] string DataType, [FromBody] Dictionary<string, object> JObject)
+        public async Task<HttpResponseMessage> FillForm([FromQuery] string Form, [FromQuery] string DataType, [FromBody] Dictionary<string, object> JObject)
         {
             string str = Convert.ToString(JObject["JObject"]);
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
             Dictionary<string, object> values = JsonConvert.DeserializeObject<Dictionary<string, object>>(str);
-            FormModel frm = _formService.FormByName(Form);
+            FormModel frm = await _formService.FormByName(Form);
 
             string strHtml = "";
 
@@ -43,12 +48,12 @@ namespace FormFillerCore.Controllers
             }
 
 
-            Dictionary<string, object> dmap = _datamapService.FillMap(Form, DataType, values);
+            Dictionary<string, object> dmap = await _datamapService.FillMap(Form, DataType, values);
 
 
             if (DataType != "HTMLSTRING")
             {
-                byte[] stampedfile = _formApiService.FillForm(Form, dmap);
+                byte[] stampedfile = await _formApiService.FillForm(Form, dmap);
 
                 MemoryStream fstream = new MemoryStream();
                 fstream.Write(stampedfile, 0, stampedfile.Length);
@@ -61,7 +66,9 @@ namespace FormFillerCore.Controllers
             }
             else
             {
-                string emailstamp = Encoding.ASCII.GetString(_formApiService.FillForm(Form, values, strHtml));
+                var frmEmail = await _formApiService.FillForm(Form, values, strHtml);
+
+                string emailstamp = Encoding.ASCII.GetString(frmEmail);
 
                 var data = new Dictionary<string, string>();
                 data.Add("EMAILHTML", emailstamp);
@@ -74,7 +81,7 @@ namespace FormFillerCore.Controllers
             return response;
         }
         [HttpPost]
-        public HttpResponseMessage EmailForm([FromQuery] string Form, [FromQuery] string DataType, [FromBody] EmailModel mod)
+        public async Task<HttpResponseMessage> EmailForm([FromQuery] string Form, [FromQuery] string DataType, [FromBody] EmailModel mod)
         {
             SmtpClient mailclient = new SmtpClient(); //new SmtpClient("outlook.office365.com",587);
 
@@ -86,12 +93,12 @@ namespace FormFillerCore.Controllers
             //string em = Convert.ToString(mod.EmailInfo);
             //Dictionary<string, object> emvalues = jser.Deserialize<Dictionary<string, object>>(em);
 
-            FormModel frm = _formService.FormByName(Form);
+            FormModel frm = await _formService.FormByName(Form);
 
-            Dictionary<string, object> dmap = _datamapService.FillMap(Form, DataType, values);
+            Dictionary<string, object> dmap = await _datamapService.FillMap(Form, DataType, values);
 
 
-            byte[] stampedfile = _formApiService.FillForm(Form, dmap);
+            byte[] stampedfile = await _formApiService.FillForm(Form, dmap);
 
             MemoryStream fstream = new MemoryStream();
             fstream.Write(stampedfile, 0, stampedfile.Length);
@@ -134,7 +141,7 @@ namespace FormFillerCore.Controllers
             }
         }
         [HttpPost]
-        public HttpResponseMessage CreateForm([FromBody] CreateModel mod)
+        public async Task<HttpResponseMessage> CreateForm([FromBody] CreateModel mod)
         {
             string dstr = JsonConvert.SerializeObject(mod.JObject);
             string fstr = JsonConvert.SerializeObject(mod.FormInfo);
@@ -147,7 +154,7 @@ namespace FormFillerCore.Controllers
             forminfo.TryGetValue("Title", out ftitle);
             forminfo.TryGetValue("Name", out fname);
 
-            byte[] builtfile = _formApiService.BuildForm(values, ftitle.ToString());
+            byte[] builtfile = await _formApiService.BuildFormAsync(values, ftitle.ToString());
 
             MemoryStream fstream = new MemoryStream();
             fstream.Write(builtfile, 0, builtfile.Length);
@@ -162,7 +169,7 @@ namespace FormFillerCore.Controllers
             return response;
         }
         [HttpPost]
-        public HttpResponseMessage CreateEmailForm([FromBody] CreateEmailModel mod)
+        public async Task<HttpResponseMessage> CreateEmailForm([FromBody] CreateEmailModel mod)
         {
             SmtpClient mailclient = new SmtpClient();//new SmtpClient("smtp.office365.com", 587);
             string dstr = JsonConvert.SerializeObject(mod.JObject);
@@ -176,7 +183,7 @@ namespace FormFillerCore.Controllers
             forminfo.TryGetValue("Title", out ftitle);
             forminfo.TryGetValue("Name", out fname);
 
-            byte[] builtfile = _formApiService.BuildForm(values, ftitle.ToString());
+            byte[] builtfile = await _formApiService.BuildFormAsync(values, ftitle.ToString());
 
             MemoryStream fstream = new MemoryStream();
             fstream.Write(builtfile, 0, builtfile.Length);
@@ -219,11 +226,13 @@ namespace FormFillerCore.Controllers
             }
         }
         [HttpPost]
-        public HttpResponseMessage ConvertXml([FromBody] string file)
+        public async Task<HttpResponseMessage> ConvertXml([FromBody] string file)
         {
             byte[] xmld = Convert.FromBase64String(file);
 
-            StringContent jresponse = new StringContent(_formApiService.XmlConvert(xmld));
+            var xmlCon = await _formApiService.XmlConvertAsync(xmld);
+
+            StringContent jresponse = new StringContent(xmlCon);
 
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
             response.Content = (jresponse);
@@ -231,9 +240,9 @@ namespace FormFillerCore.Controllers
             return response;
         }
         [HttpGet]
-        public Dictionary<string, object> GetDataSchema([FromQuery] string Form, [FromQuery] string DataType)
+        public async Task<Dictionary<string, object>> GetDataSchema([FromQuery] string Form, [FromQuery] string DataType)
         {
-            return _formApiService.GetDataSchema(Form, DataType);
+            return await _formApiService.GetDataSchema(Form, DataType);
         }
     }
 }

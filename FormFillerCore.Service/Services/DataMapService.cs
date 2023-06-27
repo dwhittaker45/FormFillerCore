@@ -41,7 +41,7 @@ namespace FormFillerCore.Service.Services
         {
             List<string> results = new List<string>();
 
-            using (MemoryStream ms = new MemoryStream(_formsService.GetFile(fid))) {
+            using (MemoryStream ms = new MemoryStream(_formsService.GetFile(fid).Result)) {
                 using (var pdfFile = new PdfReader(ms))
                 {
                     PdfDocument pdfDoc = new PdfDocument(pdfFile);

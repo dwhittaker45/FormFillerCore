@@ -6,6 +6,7 @@ using FormFillerCore.Service.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,9 +26,11 @@ namespace FormFillerCore.Service.Services
             _dataMapRepository = dataMapRepository;
             _mapper = mapper;
         }
-        public List<FormModel> AllForms()
+        public async Task<List<FormModel>> AllForms()
         {
-            return _mapper.Map<List<FormModel>>(_formRepository.AllForms());
+            var aFrms = await _formRepository.AllForms();
+
+            return _mapper.Map<List<FormModel>>(aFrms);
         }
 
         public async Task<FormModel> FormByName(string name)
@@ -37,12 +40,14 @@ namespace FormFillerCore.Service.Services
             return _mapper.Map<FormModel>(fMod);
         }
 
-        public FormModel FormByID(int fid)
+        public async Task<FormModel> FormByID(int fid)
         {
-            return _mapper.Map<FormModel>(_formRepository.FormByID(fid));
+            var frmModel = await _formRepository.FormByID(fid);
+
+            return _mapper.Map<FormModel>(frmModel);
         }
 
-        public void FormAdd(FullFormModel formitem)
+        public async Task FormAdd(FullFormModel formitem)
         {
             int form;
 
@@ -51,14 +56,14 @@ namespace FormFillerCore.Service.Services
                 formitem.FormModel.Form = br.ReadBytes((int)formitem.FormModel.TempFile.Length);
             }
 
-            form = _formRepository.FormAdd(_mapper.Map<Form>(formitem.FormModel));
+            form = await _formRepository.FormAdd(_mapper.Map<Form>(formitem.FormModel));
 
             formitem.DataType.FormID = form;
 
-            _dataTypeRepository.AddDataType(_mapper.Map<FormDataType>(formitem.DataType));
+            await _dataTypeRepository.AddDataType(_mapper.Map<FormDataType>(formitem.DataType));
         }
 
-        public void FormUpdate(FormModel formitem)
+        public async Task FormUpdate(FormModel formitem)
         {
 
             using (var br = new BinaryReader(formitem.TempFile.OpenReadStream()))
@@ -66,39 +71,47 @@ namespace FormFillerCore.Service.Services
                 formitem.Form = br.ReadBytes((int)formitem.TempFile.Length);
             }
 
-            _formRepository.FormUpdate(_mapper.Map<Form>(formitem));
+            await _formRepository.FormUpdate(_mapper.Map<Form>(formitem));
         }
 
-        public void FormDelete(int fid)
+        public async Task FormDelete(int fid)
         {
-            _dataTypeRepository.DeleteDataTypeByForm(fid);
-            _formRepository.FormDelete(fid);
+            await _dataTypeRepository.DeleteDataTypeByForm(fid);
+            await _formRepository.FormDelete(fid);
         }
-        public string DataTypeByID(int did)
+        public async Task<string> DataTypeByID(int did)
         {
-            return _dataTypeRepository.DataTypeByID(did);
+            return await _dataTypeRepository.DataTypeByID(did);
         }
 
-        public byte[] GetFile(int fid)
+        public async Task<byte[]> GetFile(int fid)
         {
-            return _formRepository.GetFile(fid);
+            return await _formRepository.GetFile(fid);
         }
-        public string FileTypeByID(int fid)
+        public async Task<string> FileTypeByID(int fid)
         {
-            return _formRepository.FileTypeByID(fid);
+            return await _formRepository.FileTypeByID(fid);
         }
-        public FullFormModel FullFormInfo(int fid)
+        public async Task<FullFormModel> FullFormInfo(int fid)
         {
             FullFormModel fullform = new FullFormModel();
             FormModel form = new FormModel();
             DataTypeModel dtype = new DataTypeModel();
             List<DataMapItemModel> mitems = new List<DataMapItemModel>();
 
-            form = _mapper.Map<FormModel>(_formRepository.FormByID(fid));
-            dtype = _mapper.Map<DataTypeModel>(_dataTypeRepository.DataTypesByForm(fid).First());
+
+            var frm = await _formRepository.FormByID(fid);
+            var dataT = await _dataTypeRepository.DataTypesByForm(fid);
+
+
+            form = _mapper.Map<FormModel>(frm);
+            dtype = _mapper.Map<DataTypeModel>(dataT.First());
 
             int did = Convert.ToInt32(dtype.FormDataTypeID);
-            mitems = _mapper.Map<List<DataMapItemModel>>(_dataMapRepository.DataMapItemsbyID(did));
+
+            var Items = await _dataMapRepository.DataMapItemsbyIDAsync(did);
+
+            mitems = _mapper.Map<List<DataMapItemModel>>(Items);
 
             fullform.FormModel = form;
             fullform.DataType = dtype;
@@ -106,9 +119,9 @@ namespace FormFillerCore.Service.Services
 
             return fullform;
         }
-        public int GetFormIDbyDataType(int did)
+        public async Task<int> GetFormIDbyDataType(int did)
         {
-            return _formRepository.FormIDByDataType(did);
+            return await _formRepository.FormIDByDataType(did);
         }
     }
 }
