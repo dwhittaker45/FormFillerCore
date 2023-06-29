@@ -180,7 +180,16 @@ namespace FormFillerCore.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> CreateEmailForm([FromBody] CreateEmailModel mod)
         {
-            SmtpClient mailclient = new SmtpClient();//new SmtpClient("smtp.office365.com", 587);
+            SmtpClient mailclient = new SmtpClient("outlook.office365.com", 587); //new SmtpClient("outlook.office365.com",587);
+
+            NetworkCredential credential = new NetworkCredential("cbflow@cbsd.org", "C8fl34");
+
+            mailclient.Credentials = credential;
+
+            mailclient.EnableSsl = true;
+
+            mailclient.DeliveryMethod = SmtpDeliveryMethod.Network;
+
             string dstr = JsonSerializer.Serialize(mod.JObject);
             string fstr = JsonSerializer.Serialize(mod.FormInfo);
             Dictionary<string, object> values = JsonSerializer.Deserialize<Dictionary<string, object>>(dstr);
