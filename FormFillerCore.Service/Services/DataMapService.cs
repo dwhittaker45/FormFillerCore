@@ -14,6 +14,8 @@ using iText.Kernel.Pdf;
 using System.Collections;
 using System.Text.RegularExpressions;
 using iText.Forms.Fields;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FormFillerCore.Service.Services
 {
@@ -147,7 +149,10 @@ namespace FormFillerCore.Service.Services
                 {
                     List<Dictionary<string, object>> repeatmap = new List<Dictionary<string, object>>();
 
-                    ArrayList vals = (ArrayList)values[ditem.DataObject.ToString()];
+
+                    string arList = JsonSerializer.Serialize(values[ditem.DataObject.ToString()]);
+
+                    ArrayList vals = JsonSerializer.Deserialize<ArrayList>(arList);
 
                     //object[] vals = (object[])arr;
 
@@ -155,7 +160,10 @@ namespace FormFillerCore.Service.Services
 
                     for (int a = 0; a <= vals.Count - 1; a++)
                     {
-                        kvp.Add((Dictionary<string, object>)vals[a]);
+                    
+                        string arVal = JsonSerializer.Serialize(vals[a]);
+
+                        kvp.Add(JsonSerializer.Deserialize <Dictionary<string, object>>(arVal));
                     }
 
 
@@ -361,9 +369,9 @@ namespace FormFillerCore.Service.Services
                                     {
                                         ChildMapItemModel runitem = (ChildMapItemModel)citem.Value;
 
-                                        DataMapItemModel parentitem = _mapper.Map<DataMapItemModel>(_DataMapRepository.DataMapItemByID(Convert.ToInt32(runitem.ParentObject)));
+                                        DataMapItemModel parentitem = _mapper.Map<DataMapItemModel>(_DataMapRepository.DataMapItemByID(Convert.ToInt32(runitem.ParentObject)).Result);
 
-                                        int tItems = Convert.ToInt32(_DataMapRepository.GetItemCountbyID((int)runitem.ParentObject));
+                                        int tItems = Convert.ToInt32(_DataMapRepository.GetItemCountbyID((int)runitem.ParentObject).Result);
 
                                         List<Dictionary<string, object>> runobj = new List<Dictionary<string, object>>();
 
@@ -527,16 +535,17 @@ namespace FormFillerCore.Service.Services
                 if (result.Keys.Contains("FormObject"))
                 {
                    using (MemoryStream ms = new MemoryStream(pdfform)) { 
-                        using (var reader = new PdfReader(ms))
-                        {
-                            PdfDocument pdfDoc = new PdfDocument(reader);
 
-                            PdfAcroForm pdfForm = PdfAcroForm.GetAcroForm(pdfDoc, false);
+                        PdfDocument pdfDoc = new PdfDocument(new PdfReader(ms));
 
-                            KeyValuePair<string, object> formval = new KeyValuePair<string, object>(field.ToString(), pdfForm.GetField(result["FormObject"]).GetDisplayValue().ToString());
+                        PdfAcroForm pForm = PdfAcroForm.GetAcroForm(pdfDoc, true);
 
-                            return formval;
-                        }
+                        KeyValuePair<string, object> formval = new KeyValuePair<string, object>(field.ToString(), pForm.GetField(result["FormObject"]).GetDisplayValue().ToString());
+
+                        pdfDoc.Close();
+
+                        return formval;
+
                     }
                 }
             }
@@ -546,7 +555,7 @@ namespace FormFillerCore.Service.Services
                 {
                     ChildMapItemModel citem = new ChildMapItemModel();
 
-                    citem = _mapper.Map<ChildMapItemModel>(_DataMapRepository.ChildObjectbynames(result["ChildObject"], result["DataObject"], dtype));
+                    citem = _mapper.Map<ChildMapItemModel>(_DataMapRepository.ChildObjectbynames(result["ChildObject"], result["DataObject"], dtype).Result);
 
                     KeyValuePair<string, object> formval = new KeyValuePair<string, object>(field.ToString(), citem);
 

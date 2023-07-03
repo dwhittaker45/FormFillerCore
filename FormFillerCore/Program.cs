@@ -34,11 +34,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //    config.AddPolicy("AuthZPolicy", policyBuilder =>
 //        policyBuilder.Requirements.Add(new ScopeAuthorizationRequirement() { RequiredScopesConfigurationKey = $"AzureAd:Scopes" }));
 //});
+Console.WriteLine(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
 
+Console.WriteLine(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"));
 
 if (builder.Environment.IsProduction())
 {
-
+    Console.WriteLine("Attempting Production Build");
+    
     using (var x509Store = new X509Store(StoreName.My, StoreLocation.LocalMachine))
     {
         x509Store.Open(OpenFlags.ReadOnly);
@@ -60,6 +63,8 @@ if (builder.Environment.IsProduction())
 }
 else
 {
+    Console.WriteLine("Attempting Development Build");
+
     builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 }
 

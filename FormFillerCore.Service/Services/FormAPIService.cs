@@ -20,6 +20,8 @@ using iText.Kernel.Font;
 using iText.Layout.Borders;
 using iText.Forms.Fields;
 using iText.Forms;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Reflection.PortableExecutable;
 
 namespace FormFillerCore.Service.Services
@@ -244,7 +246,11 @@ namespace FormFillerCore.Service.Services
             {
                 using (MemoryStream repms = new MemoryStream())
                 {
-                    PdfDocument newDoc = new PdfDocument(new PdfWriter(repms));
+                    var writer = new PdfWriter(repms);
+
+                    writer.SetCloseStream(false);
+
+                    PdfDocument newDoc = new PdfDocument(writer);
 
                     int pages = TotalRepeatPages(values, frm);
                     for (int i = 0; i <= pages - 1; i++)
@@ -255,9 +261,17 @@ namespace FormFillerCore.Service.Services
                             
                             using (PdfReader read = new PdfReader(readFrm))
                             {
-                                PdfDocument pdf = new PdfDocument(read, new PdfWriter(ms));
+                                PdfWriter mswriter = new PdfWriter(ms);
 
-                                PdfAcroForm stamper = PdfAcroForm.GetAcroForm(pdf, false);
+                                mswriter.SetCloseStream(false);
+
+                                PdfDocument pdf = new PdfDocument(read, mswriter);
+
+                                PdfAcroForm stamper = PdfAcroForm.GetAcroForm(pdf, true);
+
+                                IDictionary<string, PdfFormField> stamperfields = stamper.GetAllFormFields();
+
+                                PdfFormField toSet;
 
                                 foreach (KeyValuePair<string, object> kvp in values)
                                 {
@@ -278,8 +292,11 @@ namespace FormFillerCore.Service.Services
 
 
                                                 //}
+                                                stamperfields.TryGetValue(kvp.Key, out toSet);
 
-                                                stamper.GetField(kvp.Key).SetValue(tvals[i]);
+                                                toSet.SetValue(tvals[i]);
+
+                                                //stamper.GetField(kvp.Key).SetValue(tvals[i]);
                                             }
 
 
@@ -301,7 +318,11 @@ namespace FormFillerCore.Service.Services
                                                         //js = js + string.Format("var f = this.getField('{0}'); f.value = 1 * {1};", formitems.Key + Convert.ToString(r + 1),formitems.Value);
                                                         //}
 
-                                                        stamper.GetField(formitems.Key.ToString() + Convert.ToString(r + 1)).SetValue(formitems.Value.ToString());
+                                                        stamperfields.TryGetValue(formitems.Key.ToString() + Convert.ToString(r + 1), out toSet);
+
+                                                        toSet.SetValue(formitems.Value.ToString());
+
+                                                        //stamper.GetField(formitems.Key.ToString() + Convert.ToString(r + 1)).SetValue(formitems.Value.ToString());
                                                     }
                                                 }
 
@@ -318,14 +339,23 @@ namespace FormFillerCore.Service.Services
                                         //{
                                         //js = js + string.Format("var f = this.getField('{0}'); f.value = 1 * f.value;", kvp.Key,kvp.Value);
                                         //}
-                                        stamper.GetField(kvp.Key).SetValue(kvp.Value.ToString());
+
+                                        stamperfields.TryGetValue(kvp.Key, out toSet);
+
+                                        toSet.SetValue(kvp.Value.ToString());
+
+                                        //stamper.GetField(kvp.Key).SetValue(kvp.Value.ToString());
                                     }
                                 }
 
                                 //repeatstamper.JavaScript = js;
                                 stamper.FlattenFields();
+
+                                //mswriter.SetCloseStream(true);
+
                                 pdf.Close();
                             }
+                            ms.Position = 0;
 
                             PdfDocument tempPdf = new PdfDocument(new PdfReader(ms));
 

@@ -2,10 +2,12 @@
 using FormFillerCore.Service.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
 using System.Net.Mail;
 using System.Net;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Net.Http;
 using System.Web;
 using System.IO;
@@ -35,7 +37,7 @@ namespace FormFillerCore.Controllers
         {
             string str = Convert.ToString(JObject["JObject"]);
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
-            Dictionary<string, object> values = JsonConvert.DeserializeObject<Dictionary<string, object>>(str);
+            Dictionary<string, object> values = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
             FormModel frm = await _formService.FormByName(Form);
 
             string strHtml = "";
@@ -73,7 +75,7 @@ namespace FormFillerCore.Controllers
                 var data = new Dictionary<string, string>();
                 data.Add("EMAILHTML", emailstamp);
 
-                var resp = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                var resp = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
 
                 response.Content = resp;
             }
@@ -83,12 +85,19 @@ namespace FormFillerCore.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> EmailForm([FromQuery] string Form, [FromQuery] string DataType, [FromBody] EmailModel mod)
         {
-            SmtpClient mailclient = new SmtpClient(); //new SmtpClient("outlook.office365.com",587);
+            SmtpClient mailclient = new SmtpClient("outlook.office365.com",587); //new SmtpClient("outlook.office365.com",587);
 
+            NetworkCredential credential = new NetworkCredential("cbflow@cbsd.org", "C8fl34");
 
-            string str = JsonConvert.SerializeObject(mod.JObject);
+            mailclient.Credentials = credential;
 
-            Dictionary<string, object> values = JsonConvert.DeserializeObject<Dictionary<string, object>>(str);
+            mailclient.EnableSsl = true;
+
+            mailclient.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+            string str = JsonSerializer.Serialize(mod.JObject);
+
+            Dictionary<string, object> values = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
 
             //string em = Convert.ToString(mod.EmailInfo);
             //Dictionary<string, object> emvalues = jser.Deserialize<Dictionary<string, object>>(em);
@@ -143,10 +152,10 @@ namespace FormFillerCore.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> CreateForm([FromBody] CreateModel mod)
         {
-            string dstr = JsonConvert.SerializeObject(mod.JObject);
-            string fstr = JsonConvert.SerializeObject(mod.FormInfo);
-            Dictionary<string, object> values = JsonConvert.DeserializeObject<Dictionary<string, object>>(dstr);
-            Dictionary<string, object> forminfo = JsonConvert.DeserializeObject<Dictionary<string, object>>(fstr);
+            string dstr = JsonSerializer.Serialize(mod.JObject);
+            string fstr = JsonSerializer.Serialize(mod.FormInfo);
+            Dictionary<string, object> values = JsonSerializer.Deserialize<Dictionary<string, object>>(dstr);
+            Dictionary<string, object> forminfo = JsonSerializer.Deserialize<Dictionary<string, object>>(fstr);
 
             object ftitle;
             object fname;
@@ -171,11 +180,20 @@ namespace FormFillerCore.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> CreateEmailForm([FromBody] CreateEmailModel mod)
         {
-            SmtpClient mailclient = new SmtpClient();//new SmtpClient("smtp.office365.com", 587);
-            string dstr = JsonConvert.SerializeObject(mod.JObject);
-            string fstr = JsonConvert.SerializeObject(mod.FormInfo);
-            Dictionary<string, object> values = JsonConvert.DeserializeObject<Dictionary<string, object>>(dstr);
-            Dictionary<string, object> forminfo = JsonConvert.DeserializeObject<Dictionary<string, object>>(fstr);
+            SmtpClient mailclient = new SmtpClient("outlook.office365.com", 587); //new SmtpClient("outlook.office365.com",587);
+
+            NetworkCredential credential = new NetworkCredential("cbflow@cbsd.org", "C8fl34");
+
+            mailclient.Credentials = credential;
+
+            mailclient.EnableSsl = true;
+
+            mailclient.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+            string dstr = JsonSerializer.Serialize(mod.JObject);
+            string fstr = JsonSerializer.Serialize(mod.FormInfo);
+            Dictionary<string, object> values = JsonSerializer.Deserialize<Dictionary<string, object>>(dstr);
+            Dictionary<string, object> forminfo = JsonSerializer.Deserialize<Dictionary<string, object>>(fstr);
 
             object ftitle;
             object fname;
