@@ -18,7 +18,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 var keyVaultEndpoint = new Uri($"https://{builder.Configuration.GetSection("KeyVaultData")["KeyVaultName"]}.vault.azure.net/");
-builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 
 // Add services to the container.
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
