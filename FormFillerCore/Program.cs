@@ -12,6 +12,8 @@ using FormFillerCore.Repository.Interfaces;
 using FormFillerCore.Repository.Repositories;
 using FormFillerCore.Service.Interfaces;
 using FormFillerCore.Service.Services;
+using System.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,13 +36,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //    config.AddPolicy("AuthZPolicy", policyBuilder =>
 //        policyBuilder.Requirements.Add(new ScopeAuthorizationRequirement() { RequiredScopesConfigurationKey = $"AzureAd:Scopes" }));
 //});
-System.Diagnostics.Debug.WriteLine(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+//EventLog.WriteEntry(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToString());
 
-System.Diagnostics.Debug.WriteLine(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"));
+EventLog.WriteEntry(".NET Runtime","The Environment is: " + Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+
 
 if (builder.Environment.IsProduction())
 {
-    System.Diagnostics.Debug.WriteLine("Attempting Production Build");
+    EventLog.WriteEntry(".NET Runtime", "Attempting Production Build");
     
     using (var x509Store = new X509Store(StoreName.My, StoreLocation.LocalMachine))
     {
@@ -63,7 +66,7 @@ if (builder.Environment.IsProduction())
 }
 else
 {
-    System.Diagnostics.Debug.WriteLine("Attempting Development Build");
+    EventLog.WriteEntry(".NET Runtime", "Attempting Development Build");
 
     builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 }
