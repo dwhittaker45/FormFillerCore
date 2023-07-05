@@ -87,7 +87,7 @@ builder.Services.AddCors(options =>
      options.AddPolicy("AllowAllOrigins",
                          policy =>
                          {
-                             policy.AllowAnyOrigin()
+                             policy.WithOrigins("https://make.powerautomate.com")
                                  .AllowAnyHeader()
                                  .AllowAnyMethod();
 
