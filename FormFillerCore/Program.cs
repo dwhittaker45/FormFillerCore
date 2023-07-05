@@ -82,6 +82,19 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
+builder.Services.AddCors(options =>
+ {
+     options.AddPolicy("AllowAllOrigins",
+                         policy =>
+                         {
+                             policy.AllowAnyOrigin()
+                                 .AllowAnyHeader()
+                                 .AllowAnyMethod();
+
+                         });
+
+});
+
 builder.Services.AddScoped<IDataMapItemRepository, DataMapItemRepository>();
 builder.Services.AddScoped<IDataTypeRepository, DataTypeRepository>();
 builder.Services.AddScoped<IFormRepository, FormRepository>();
@@ -113,6 +126,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
