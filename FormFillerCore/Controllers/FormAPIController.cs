@@ -14,9 +14,11 @@ using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web.Resource;
+using Microsoft.AspNetCore.Cors;
 
 namespace FormFillerCore.Controllers
 {
+    [EnableCors("AllowAllOrigins")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [RequiredScope("default")]
     [Route("api/[controller]/[action]")]

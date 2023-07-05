@@ -11,8 +11,8 @@ namespace FormFillerCore.Service.Interfaces
     {
         Task<List<DataMapItemModel>> GetFormDataMap(int did);
         Task<List<DataMapItemModel>> GetFormDataMapByName(string fname, string dtype);
-        List<ChildMapItemModel> GetChildObjectsByParent(int pid);
-        void AddChildObject(ChildMapItemModel citem);
+        Task<List<ChildMapItemModel>> GetChildObjectsByParent(int pid);
+        Task AddChildObject(ChildMapItemModel citem);
         List<string> GetFormFields(int fid);
         Task<List<string>> GetFormFieldsAsync(int fid);
         Task AddMapItem(DataMapItemModel dm);

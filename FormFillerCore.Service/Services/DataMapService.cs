@@ -290,15 +290,17 @@ namespace FormFillerCore.Service.Services
         }
 
 
-        public List<ChildMapItemModel> GetChildObjectsByParent(int pid)
+        public async Task<List<ChildMapItemModel>> GetChildObjectsByParent(int pid)
         {
-            return _mapper.Map<List<ChildMapItemModel>>(_DataMapRepository.ChildObjectsByParent(pid));
+            var coparent = await _DataMapRepository.ChildObjectsByParent(pid);
+
+            return _mapper.Map<List<ChildMapItemModel>>(coparent);
         }
 
 
-        public void AddChildObject(ChildMapItemModel citem)
+        public async Task AddChildObject(ChildMapItemModel citem)
         {
-            _DataMapRepository.AddChildItem(_mapper.Map<DataMapChildObject>(citem));
+            await _DataMapRepository.AddChildItem(_mapper.Map<DataMapChildObject>(citem));
         }
 
 
