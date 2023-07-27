@@ -84,8 +84,8 @@ namespace FormFillerCore.Controllers
                 var resp = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
 
                 //response.Content = resp;
-
-                return Ok(resp);
+                
+                return new JsonResult(resp);
             }
 
             //return response;
