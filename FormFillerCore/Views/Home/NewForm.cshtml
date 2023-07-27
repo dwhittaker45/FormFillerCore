@@ -1,0 +1,56 @@
+﻿@model FormFillerCore.Common.Models.FullFormModel
+
+@{
+    ViewBag.Title = "NewForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>View</h2>
+
+
+@using (Html.BeginForm("NewForm", "Forms", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>NewFormModel</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.FormModel.FormName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.FormModel.FormName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.FormModel.FormName, "You Must have a form name", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.FormModel.FileType, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(x => x,Html.GetEnumSelectList(Model.FormModel.FileType.GetType()), "Select file Type", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.FormModel.FileType,"You must select a file type" ,new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.DataType.DataType, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(x => x,Html.GetEnumSelectList(Model.DataType.DataType.GetType()), "Select Data Type", new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.FormModel.TempFile, htmlAttributes: new { @class = "control-lable col-md-2"})
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.FormModel.TempFile, new { type = "file", name="formfile"})
+                @Html.ValidationMessageFor(model => model.FormModel.TempFile, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

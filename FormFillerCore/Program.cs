@@ -134,7 +134,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=List}/{id?}");
 app.MapRazorPages();
 app.MapControllers();
 

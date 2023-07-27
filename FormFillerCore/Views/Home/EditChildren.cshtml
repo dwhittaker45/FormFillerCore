@@ -1,0 +1,101 @@
+﻿@model FormFillerCore.Common.Models.ChildMapItemModel
+
+@{
+    ViewBag.Title = "ChildObjects";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>ChildObjects</h2>
+<div class="form-group">
+    <label class="control-label col-md-2">Parent Object:</label>
+    <div class="col-md-10">
+        @ViewBag.Parent
+    </div>
+</div>
+<br />
+<br />
+@using (Html.BeginForm("EditChildren", "Forms", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <table>
+        <tr>
+            <td>@Html.LabelFor(model => model.DataObject, htmlAttributes: new { @class = "control-label col-md-2" })</td>
+            <td>@Html.EditorFor(model => model.DataObject, new { htmlAttributes = new { @class = "form-control" } })</td>
+            <td>@Html.LabelFor(model => model.FormObject, htmlAttributes: new{ @class = "control-label col-md-2"})</td>
+            <td>@Html.EditorFor(model => model.FormObject, new { htmlAttributes = new { @class = "form-control" } })</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>@Html.LabelFor(model => model.CheckValue, htmlAttributes: new { @class = "control-label col-md-2" })</td>
+            <td>@Html.EditorFor(model => model.CheckValue, new { htmlAttributes = new { @class = "form-control" } })</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td align="right">
+                <div class="form-group">
+                    @Html.LabelFor(x => x.Calculated, htmlAttributes: new { @class = "control-label col-md-2" })
+                </div>
+            </td>
+            <td align="left">
+                <div class="col-md-10">
+                    @Html.EditorFor(x => x.Calculated, new { htmlAttributes = new { @class = "form-control", @id = "chkCalc" } })
+                </div>
+            </td>
+            <td>&nbsp;</td>
+            <td align="right">
+                <div class="form-group">
+                    @Html.LabelFor(x => x.Expression, htmlAttributes: new { @class = "control-label col-md-2" })
+                </div>
+            </td>
+            <td align="left">
+                <div class="col-md-10">
+                    @Html.EditorFor(x => x.Expression, new { htmlAttributes = new { @class = "form-control", @id = "txtExpr" } }))
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Add Child Item" class="btn btn-default" />
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<br />
+<br />
+<table class="table">
+    <tr>
+        <th>
+            @Html.Label("DataObject")
+        </th>
+        <th>
+            @Html.Label("FormObject")
+        </th>
+        <th>
+            @Html.Label("Check Value")
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in ViewBag.ParentMap)
+    {
+        <tr>
+            <td>
+                @item.DataObject
+            </td>
+            <td>
+                @item.FormObject
+            </td>
+            <td>
+                @item.CheckValue
+            </td>
+            <td>
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+    }
+
+</table>

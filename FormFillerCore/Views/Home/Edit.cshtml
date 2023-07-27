@@ -1,0 +1,62 @@
+﻿@model FormFillerCore.Common.Models.FullFormModel
+
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>View</h2>
+
+
+@using (Html.BeginForm("Edit", "Forms", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>FormModel</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="mb-3">
+            @Html.LabelFor(model => model.FormModel.FormName, htmlAttributes: new { @class = "form-label col-md-auto" })
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.FormModel.FormName)
+            </div>
+        </div>
+        <div class="mb-3">
+            @Html.LabelFor(model => model.DataType.DataType, htmlAttributes: new { @class = "form-label col-md-auto"})
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.DataType.DataType)
+            </div>
+        </div>
+        <div class="mb-3">
+            @Html.LabelFor(model => model.FormModel.TempFile, htmlAttributes: new { @class = "form-label col-md-auto" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.FormModel.TempFile, new { type = "file", name = "formfile" })
+                @Html.ValidationMessageFor(model => model.FormModel.TempFile, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="mb-3">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Update FormFile" class="btn btn-primary" />
+            </div>
+        </div>
+        <div class="mb-3">
+            <div id="editview">
+                @{
+                    var dmodel = new FormFillerCore.Common.Models.FormDetailModel();
+
+                    dmodel.DataMap = Model.DataMap;
+
+                    dmodel.FormFields = ViewBag.FormFields;
+
+                    <partial name="CreateDataMapItem" model="dmodel" ></partial>
+                }
+               
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "List")
+</div>

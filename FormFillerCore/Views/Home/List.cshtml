@@ -1,0 +1,54 @@
+﻿@model IEnumerable<FormFillerCore.Common.Models.FormModel>
+
+@{
+    ViewBag.Title = "List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>List</h2>
+
+<p>
+    @Html.ActionLink("New Form", "NewForm")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.Label("Form ID")
+        </th>
+        <th>
+            @Html.Label("Form Name")
+        </th>
+        <th>
+            @Html.Label("File Type")
+        </th>
+        <th>
+            @Html.Label("Form")
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.fid)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.FormName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.FileType)
+            </td>
+            <td>
+                @Html.ActionLink("View", "ViewForm", new { fid = item.fid })
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.fid }) |
+                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Delete", "Delete", new { fid=item.fid, })
+            </td>
+        </tr>
+    }
+
+</table>
+
