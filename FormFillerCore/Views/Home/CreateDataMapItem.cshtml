@@ -1,0 +1,235 @@
+﻿@model FormFillerCore.Common.Models.FormDetailModel
+
+@*@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()*@
+        <div>
+            <table style="border: 1px solid;">
+                <tr>
+            <td style="border: 1px solid;">
+                        <div class="mb-3">
+                    @Html.LabelFor(model => model.NewMapItem.DataObject, htmlAttributes: new { @class = "col-form-label col-md-auto bold align-middle" })
+                        </div>
+                    </td>
+            <td style="border: 1px solid;">
+                        <div class="col-md-10">
+                        @Html.EditorFor(model => model.NewMapItem.DataObject, new { htmlAttributes = new { @class = "form-control", @id = "txtDobject" } })
+                        </div>
+                    </td>
+            <td style="border: 1px solid;">&nbsp;<b>@Html.Label("=")</b>&emsp;</td>
+            <td style="border: 1px solid;">
+                        <div class="mb-3">
+                    @Html.LabelFor(model => model.NewMapItem.FormObject, htmlAttributes: new { @class = "col-form-label col-md-auto"})
+                        </div>
+                    </td>
+            <td style="border: 1px solid;">
+                        <div class="col-md-10">
+                        @Html.DropDownListFor(x => x.NewMapItem.FormObject, new SelectList(Model.FormFields), new { @class = "form-control", @id ="ddlFobject" })
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+            <td colspan="2" align="right" style="border: 1px solid;">
+                <div class="mb-3">
+                    @Html.LabelFor(x => x.NewMapItem.CheckValue, htmlAttributes: new { @class = "col-form-label col-md-auto" })
+                        </div>
+                    </td>
+            <td style="border: 1px solid;">&nbsp;</td>
+            <td colspan="2" align="left" style="border: 1px solid;">
+                        <div class="col-md-10">
+                        @Html.EditorFor(x => x.NewMapItem.CheckValue, new { htmlAttributes = new { @class = "form-control", @id = "txtCheckVal" } })
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+            <td align="right" style="border: 1px solid;">
+                <div class="mb-3">
+                    @Html.LabelFor(x => x.NewMapItem.Repeatable, htmlAttributes: new { @class = "col-form-label col-md-auto" })
+                        </div>
+            <td align="left" style="border: 1px solid;">
+                        <div class="col-md-10">
+                            @Html.EditorFor(x => x.NewMapItem.Repeatable, new { htmlAttributes = new { @class = "form-control", @id = "chkRepeat" } })
+                        </div>
+                    </td>
+            <td style="border: 1px solid;">&nbsp;</td>
+            <td align="right" style="border: 1px solid;">
+                <div class="mb-3">
+                        @Html.LabelFor(x => x.NewMapItem.ItemCount, htmlAttributes: new { @class = "col-form-label col-md-auto" })
+                        </div>
+                    </td>
+            <td align="left" style="border: 1px solid;">
+                        <div class="col-md-10">
+                            @Html.EditorFor(x => x.NewMapItem.ItemCount, new { htmlAttributes = new { @class = "form-control", @id = "txtItem" } })
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+            <td align="right" style="border: 1px solid;">
+                <div class="mb-3">
+                    @Html.LabelFor(x => x.NewMapItem.Calculated, htmlAttributes: new { @class = "col-form-label col-md-auto"})
+                        </div>
+                    </td>
+            <td align="left" style="border: 1px solid;">
+                        <div class="col-md-10">
+                        @Html.EditorFor(x => x.NewMapItem.Calculated, new { htmlAttributes = new { @class = "form-control", @id = "chkCalc" } })
+                        </div>
+                    </td>
+            <tdstyle ="border: 1px solid;">&nbsp;</tdstyle>
+            <td align="right" style="border: 1px solid;">
+                <div class="mb-3">
+                    @Html.LabelFor(x => x.NewMapItem.Expression, htmlAttributes: new { @class = "col-form-label col-md-auto"})
+                        </div>
+                    </td>
+            <td align="left" style="border: 1px solid;">
+                        <div class="col-md-10">
+                        @Html.EditorFor(x => x.NewMapItem.Expression, new { htmlAttributes = new { @class = "form-control", @id = "txtExpr" } })
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+            <td colspan="2" style="border: 1px solid;"><center><input type="button" value="Create" class="btn btn-primary" id="btnAddMapItem" /></center></td>
+                    <td></td>
+            <td colspan="2" style="border: 1px solid;"><center><input type="button" value="Auto Map" class="btn btn-primary" id="btnAutoMap" /></center></td>
+                </tr>
+                <tr>
+            <td colspan="5" style="border: 1px solid;">
+                    @if (Model.DataMap != null)
+                    {
+                                <table class="table">
+                                    <tr>
+                                        <th>
+                                    @Html.Label("Data Object")
+                                        </th>
+                                        <th>
+                                    @Html.Label("Form Object")
+                                        </th>
+                                        <th>
+                                    @Html.Label("Check Value")
+                                        </th>
+                                        <th>
+                                    @Html.Label("Repeatable")
+                                        </th>
+                                        <th>
+                                    @Html.Label("Item Count")
+                                        </th>
+                                        <th>
+                                    @Html.Label("Expression")
+                                        </th>
+                                        <th>
+                                    @Html.Label("Child Objects")
+                                        </th>
+                                    </tr>
+
+                            @foreach (var item in Model.DataMap)
+                            {
+                                            <tr>
+                                                <td>
+                                        @item.DataObject
+                                                </td>
+                                                <td>
+                                        @item.FormObject
+                                                </td>
+                                                <td>
+                                        @item.CheckValue
+                                                </td>
+                                                <td>
+                                        @item.Repeatable
+                                                </td>
+                                                <td>
+                                        @item.ItemCount
+                                                </td>
+                                                <td>
+                                        @item.Expression
+                                                </td>
+                                                <td>
+                                        @if (@item.Repeatable == true)
+                                        {
+                                            @Html.ActionLink("Edit Child Objects", "EditChildren", new { id = item.DataMapID })
+                                        }
+                                                </td>
+                                                <td>
+                                                    <a href="#" data-mapid="@item.DataMapID" class="select-link">Delete</a>
+                                                </td>
+                                            </tr>
+                            }
+                                </table>
+                    }
+                    </td>
+                </tr>
+        </table>
+        </div>
+@*}*@
+
+@section Scripts {
+         <script type="text/javascript">
+                               $(document).ready(function () {
+                                   $("#btnAddMapItem").click(function (e) {
+
+                                       var dobject = $("#ddlFobject option:selected").val();
+                                       var fobject = $("#txtDobject").val();
+                                       var cval = $("#txtCheckVal").val();
+                                       var rep = $("#chkRepeat").is(":checked");
+                                       var item = $("#txtItem").val();
+                                       var calc = $("#chkCalc").is(":checked");
+                                       var expr = $("#txtExpr").val();
+
+                                       var data = JSON.stringify({
+                                           DataMapID: '',
+                                           FormDataTypeID: @ViewBag.DataType,
+                                           FormObject: dobject.trim(),
+                                           DataObject: fobject.trim(),
+                                           CheckValue: cval.trim(),
+                                           Repeatable: rep,
+                                           ItemCount: item.trim(),
+                                           Calculated: calc,
+                                           Expression: expr
+                                       });
+                                       e.preventDefault();
+                                       $.ajax({
+                                           type: "POST",
+                                           url: "@Url.Action("AddMapItem", "Forms")",
+                                           data: { ditem: data },
+                                           dataType: "json",
+                                           success: function (data) {
+                                               var frm = '@Url.Action("LoadEdit", "Forms", new { formid = "-1" })';
+                                               frm = frm.replace("-1", data.data);
+                                               console.log(frm);
+                                               $("#editview").load(frm);
+                                           }
+                                       });
+                                   });
+                                   $("#btnAutoMap").click(function (e) {
+                                       e.preventDefault();
+                                       $.ajax({
+                                           type: "POST",
+                                           url: "@Url.Action("AutoMapItems","Forms")",
+                                           data: { did: @ViewBag.DataType },
+                                           dataType: "json",
+                                           success: function (data) {
+                                               var frm = '@Url.Action("LoadEdit", "Forms", new { formid = "-1" })';
+                                               frm = frm.replace("-1", data.data);
+                                               console.log(frm);
+                                               $("#editview").load(frm);
+                                           }
+                                       });
+                                   });
+                                   $(".select-link").click(function (e) {
+                                       var id = $(this).attr('data-mapid');
+                                       e.preventDefault
+                                       $.ajax({
+                                           type: "POST",
+                                           url: "@Url.Action("DeleteMapItem","Forms")",
+                                           data: { MapID: id },
+                                           dataType: "json",
+                                           success: function (data) {
+                                               var frm = '@Url.Action("LoadEdit", "Forms", new { formid = "-1" })';
+                                               frm = frm.replace("-1", data.data);
+                                               console.log(frm);
+                                               $("#editview").load(frm);
+                                           }
+                                       });
+                                   });
+                               });
+    </script>
+
+}

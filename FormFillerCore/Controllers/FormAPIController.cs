@@ -35,10 +35,10 @@ namespace FormFillerCore.Controllers
             _formApiService = formApiService;
         }
         [HttpPost]
-        public async Task<HttpResponseMessage> FillForm([FromQuery] string Form, [FromQuery] string DataType, [FromBody] Dictionary<string, object> JObject)
+        public async Task<IActionResult> FillForm([FromQuery] string Form, [FromQuery] string DataType, [FromBody] Dictionary<string, object> JObject)
         {
             string str = Convert.ToString(JObject["JObject"]);
-            HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
+            //HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
             Dictionary<string, object> values = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
             FormModel frm = await _formService.FormByName(Form);
 
@@ -59,14 +59,18 @@ namespace FormFillerCore.Controllers
             {
                 byte[] stampedfile = await _formApiService.FillForm(Form, dmap);
 
+                //IActionResult response = new IActionResult();
+
                 MemoryStream fstream = new MemoryStream();
                 fstream.Write(stampedfile, 0, stampedfile.Length);
                 fstream.Position = 0;
 
-                response.Content = new StreamContent(fstream);
-                response.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment");
-                response.Content.Headers.ContentDisposition.FileName = Form + ".pdf";
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+                return File(stampedfile, "application/pdf");
+
+                //response.Content = new StreamContent(fstream);
+                //response.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment");
+                //response.Content.Headers.ContentDisposition.FileName = Form + ".pdf";
+                //response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
             }
             else
             {
@@ -79,10 +83,12 @@ namespace FormFillerCore.Controllers
 
                 var resp = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
 
-                response.Content = resp;
+                //response.Content = resp;
+                
+                return new JsonResult(resp);
             }
 
-            return response;
+            //return response;
         }
         [HttpPost]
         public async Task<HttpResponseMessage> EmailForm([FromQuery] string Form, [FromQuery] string DataType, [FromBody] EmailModel mod)
@@ -152,7 +158,7 @@ namespace FormFillerCore.Controllers
             }
         }
         [HttpPost]
-        public async Task<HttpResponseMessage> CreateForm([FromBody] CreateModel mod)
+        public async Task<IActionResult> CreateForm([FromBody] CreateModel mod)
         {
             string dstr = JsonSerializer.Serialize(mod.JObject);
             string fstr = JsonSerializer.Serialize(mod.FormInfo);
@@ -167,17 +173,20 @@ namespace FormFillerCore.Controllers
 
             byte[] builtfile = await _formApiService.BuildFormAsync(values, ftitle.ToString());
 
-            MemoryStream fstream = new MemoryStream();
-            fstream.Write(builtfile, 0, builtfile.Length);
-            fstream.Position = 0;
+            //MemoryStream fstream = new MemoryStream();
+            //fstream.Write(builtfile, 0, builtfile.Length);
+            //fstream.Position = 0;
 
-            HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
-            response.Content = new StreamContent(fstream);
-            response.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment");
-            response.Content.Headers.ContentDisposition.FileName = fname.ToString() + ".pdf";
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+            //HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
+            //response.Content = new ByteArrayContent(builtfile);
+            //response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+            //response.Content.Headers.ContentLength = builtfile.Length;
+            //response.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment");
+            //response.Content.Headers.ContentDisposition.FileName = fname.ToString() + ".pdf";
 
-            return response;
+            //return response;
+
+            return File(builtfile, "application/pdf");
         }
         [HttpPost]
         public async Task<HttpResponseMessage> CreateEmailForm([FromBody] CreateEmailModel mod)

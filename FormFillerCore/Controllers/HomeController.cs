@@ -24,9 +24,9 @@ namespace FormFillerCore.Controllers
         }
         //
         // GET: /Forms/
-        public ActionResult List()
+        public async Task<IActionResult> List()
         {
-            var model = _formService.AllForms();
+            var model = await _formService.AllForms();
             return View("List", model);
         }
         public ActionResult Index()
@@ -56,12 +56,32 @@ namespace FormFillerCore.Controllers
             }
         }
         [HttpGet]
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var model = _formService.FullFormInfo(id);
+            var model = await _formService.FullFormInfo(id);
             ViewBag.DataID = id;
-            ViewBag.DataMap = model.Result.DataMap;
+            ViewBag.DataMap = model.DataMap;
+
+            List<string> ffields = _datamapService.GetFormFields(id);
+
+            var fdtype = await _formService.FullFormInfo(id);
+
+            ViewBag.DataType = Convert.ToInt32(fdtype.DataType.FormDataTypeID);
+
+            ViewBag.FormFields = ffields;
+
             return View("Edit", model);
+        }
+        public async Task<PartialViewResult> CreateDataMapItem(int id)
+        {
+            var pmodel = new FormFillerCore.Common.Models.DataMapItemModel();
+
+            var fmodel = await _formService.FullFormInfo(id);
+
+            ViewBag.DataType = Convert.ToInt32(fmodel.DataType.FormDataTypeID);
+            ViewBag.DataMap = fmodel.DataMap;
+
+            return PartialView("CreateDataMapItem", pmodel);
         }
         public async Task<PartialViewResult> LoadEdit(int formid)
         {
@@ -108,7 +128,7 @@ namespace FormFillerCore.Controllers
             }
         }
         [HttpPost]
-        public async Task<ActionResult> AddMapItem(string ditem)
+        public async Task<IActionResult> AddMapItem(string ditem)
         {
             if (ModelState.IsValid)
             {
@@ -161,7 +181,7 @@ namespace FormFillerCore.Controllers
             }
         }
 
-        public async Task<ActionResult> DeleteMapItem(int MapID)
+        public async Task<IActionResult> DeleteMapItem(int MapID)
         {
             DataMapItemModel ditem = await _datamapService.GetMapItem(MapID);
 
@@ -175,7 +195,7 @@ namespace FormFillerCore.Controllers
 
             return (Json(returndata));
         }
-        public async Task<ActionResult> AutoMapItems(int did)
+        public async Task<IActionResult> AutoMapItems(int did)
         {
             int fid = await _formService.GetFormIDbyDataType(did);
 
@@ -188,7 +208,7 @@ namespace FormFillerCore.Controllers
             return (Json(returndata));
         }
         [HttpPost]
-        public async Task<ActionResult> Edit(int id, FullFormModel nform)
+        public async Task<IActionResult> Edit(int id, FullFormModel nform)
         {
             var model = await _formService.FullFormInfo(id);
 
@@ -205,7 +225,7 @@ namespace FormFillerCore.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> EditChildren(int id)
+        public async Task<IActionResult> EditChildren(int id)
         {
             ViewBag.ParentMap = await _datamapService.GetChildObjectsByParent(id);
             DataMapItemModel parent = await _datamapService.GetMapItem(id);
@@ -221,7 +241,7 @@ namespace FormFillerCore.Controllers
 
         }
         [HttpPost]
-        public async Task<ActionResult> EditChildren(int id, ChildMapItemModel citem)
+        public async Task<IActionResult> EditChildren(int id, ChildMapItemModel citem)
         {
             if (ModelState.IsValid)
             {
