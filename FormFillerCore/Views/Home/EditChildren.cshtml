@@ -19,21 +19,21 @@
     @Html.AntiForgeryToken()
     <table>
         <tr>
-            <td>@Html.LabelFor(model => model.DataObject, htmlAttributes: new { @class = "control-label col-md-2" })</td>
+            <td>@Html.LabelFor(model => model.DataObject, htmlAttributes: new { @class = "col-form-label col-md-auto" })</td>
             <td>@Html.EditorFor(model => model.DataObject, new { htmlAttributes = new { @class = "form-control" } })</td>
-            <td>@Html.LabelFor(model => model.FormObject, htmlAttributes: new{ @class = "control-label col-md-2"})</td>
+            <td>@Html.LabelFor(model => model.FormObject, htmlAttributes: new{ @class = "col-form-label col-md-auto"})</td>
             <td>@Html.EditorFor(model => model.FormObject, new { htmlAttributes = new { @class = "form-control" } })</td>
         </tr>
         <tr>
             <td>&nbsp;</td>
-            <td>@Html.LabelFor(model => model.CheckValue, htmlAttributes: new { @class = "control-label col-md-2" })</td>
+            <td>@Html.LabelFor(model => model.CheckValue, htmlAttributes: new { @class = "col-form-label col-md-auto" })</td>
             <td>@Html.EditorFor(model => model.CheckValue, new { htmlAttributes = new { @class = "form-control" } })</td>
             <td>&nbsp;</td>
         </tr>
         <tr>
             <td align="right">
                 <div class="form-group">
-                    @Html.LabelFor(x => x.Calculated, htmlAttributes: new { @class = "control-label col-md-2" })
+                    @Html.LabelFor(x => x.Calculated, htmlAttributes: new { @class = "col-form-label col-md-auto" })
                 </div>
             </td>
             <td align="left">
@@ -44,7 +44,7 @@
             <td>&nbsp;</td>
             <td align="right">
                 <div class="form-group">
-                    @Html.LabelFor(x => x.Expression, htmlAttributes: new { @class = "control-label col-md-2" })
+                    @Html.LabelFor(x => x.Expression, htmlAttributes: new { @class = "col-form-label col-md-auto" })
                 </div>
             </td>
             <td align="left">

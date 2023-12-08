@@ -62,10 +62,13 @@ namespace FormFillerCore.Controllers
             ViewBag.DataID = id;
             ViewBag.DataMap = model.DataMap;
 
-            List<string> ffields = _datamapService.GetFormFields(id);
-
             var fdtype = await _formService.FullFormInfo(id);
 
+            List<string> ffields = new List<string>();
+
+            if (fdtype.DataType.DataType.ToString() != "HTMLSTRING"){ 
+                ffields = _datamapService.GetFormFields(id);
+            }
             ViewBag.DataType = Convert.ToInt32(fdtype.DataType.FormDataTypeID);
 
             ViewBag.FormFields = ffields;
