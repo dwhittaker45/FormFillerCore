@@ -21,7 +21,11 @@ namespace FormFillerCore.Repository.Repositories
 
         public async Task<List<FormDataType>> DataTypesByForm(int fid)
         {
-            return await _context.FormDataTypes.Where(x => x.FormId == fid).ToListAsync();
+            List<FormDataType> dataTypes = new List<FormDataType>();
+
+            dataTypes = await _context.FormDataTypes.Where(x => x.FormId == fid).ToListAsync();
+
+            return dataTypes;
         }
 
         public async Task AddDataType(FormDataType dtype)

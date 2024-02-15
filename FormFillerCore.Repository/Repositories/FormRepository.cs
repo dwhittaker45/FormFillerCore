@@ -46,7 +46,7 @@ namespace FormFillerCore.Repository.Repositories
         public async Task<int> FormAdd(Form formitem)
         {
             await _context.Forms.AddAsync(formitem);
-            await _context.SaveChangesAsync(); ;
+            _context.SaveChanges();
             return formitem.Fid;
         }
 

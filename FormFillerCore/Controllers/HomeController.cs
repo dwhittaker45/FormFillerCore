@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using FormFillerCore.Common.Enumerators;
 
 namespace FormFillerCore.Controllers
 {
@@ -75,6 +76,17 @@ namespace FormFillerCore.Controllers
 
             return View("Edit", model);
         }
+        [HttpPost]
+        public async Task<IActionResult> FormEdit(int id)
+        {
+            var model = await _formService.FullFormInfo(id);
+            ViewBag.DataID = id;
+            ViewBag.DataMap = model.DataMap;
+
+            return View("Edit", model);
+
+        }
+
         public async Task<PartialViewResult> CreateDataMapItem(int id)
         {
             var pmodel = new FormFillerCore.Common.Models.DataMapItemModel();
@@ -114,7 +126,15 @@ namespace FormFillerCore.Controllers
         [HttpGet]
         public ActionResult NewForm()
         {
-            return View();
+            var model = new FullFormModel();
+
+            model.DataType = new DataTypeModel();
+            model.DataType.DataType = DataFormat.JSON;
+            model.FormModel = new FormModel();
+            model.FormModel.FileType = FileType.PDF;
+            model.DataMap = new List<DataMapItemModel>();
+
+            return View(model);
         }
         [HttpPost]
         public ActionResult NewForm(FullFormModel nform)
