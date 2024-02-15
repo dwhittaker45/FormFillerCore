@@ -14,7 +14,7 @@ namespace FormFillerCore.Common.Models
     {
         public int? fid { get; set; }
 
-        public byte[] Form { get; set; }
+        public byte[]? Form { get; set; }
 
         [Required]
         public string FormName { get; set; }

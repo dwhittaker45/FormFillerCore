@@ -10,6 +10,6 @@ namespace FormFillerCore.Common.Models
     {
         public DataTypeModel DataType { get; set; }
         public FormModel FormModel { get; set; }
-        public List<DataMapItemModel> DataMap { get; set; }
+        public List<DataMapItemModel>? DataMap { get; set; }
     }
 }

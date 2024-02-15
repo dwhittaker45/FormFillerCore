@@ -1,4 +1,5 @@
-﻿@model FormFillerCore.Common.Models.FullFormModel
+﻿@using FormFillerCore.Common.Enumerators
+@model FormFillerCore.Common.Models.FullFormModel
 
 @{
     ViewBag.Title = "NewForm";
@@ -8,7 +9,7 @@
 <h2>View</h2>
 
 
-@using (Html.BeginForm("NewForm", "Forms", FormMethod.Post, new { enctype = "multipart/form-data" }))
+@using (Html.BeginForm("NewForm", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
     @Html.AntiForgeryToken()
 
@@ -26,14 +27,16 @@
         <div class="form-group">
             @Html.LabelFor(model => model.FormModel.FileType, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownListFor(x => x,Html.GetEnumSelectList(Model.FormModel.FileType.GetType()), "Select file Type", new { @class = "form-control" })
+                @*@Html.get(x => x,Html.GetEnumSelectList(Model.FormModel.FileType.GetType()), "Select file Type", new { @class = "form-control" })*@
+                <select asp-for="@Model.FormModel.FileType" asp-items="@Html.GetEnumSelectList(typeof(FileType))"></select>
                 @Html.ValidationMessageFor(model => model.FormModel.FileType,"You must select a file type" ,new { @class = "text-danger" })
             </div>
         </div>
         <div class="form-group">
             @Html.LabelFor(model => model.DataType.DataType, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownListFor(x => x,Html.GetEnumSelectList(Model.DataType.DataType.GetType()), "Select Data Type", new { @class = "form-control" })
+                <select asp-for="@Model.DataType.DataType" asp-items="@Html.GetEnumSelectList(typeof(DataFormat))"></select>
+                @*@Html.DropDownListFor(x => x,Html.GetEnumSelectList(Model.DataType.DataType.GetType()), "Select Data Type", new { @class = "form-control" })*@
             </div>
         </div>
         <div class="form-group">
