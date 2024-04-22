@@ -222,7 +222,7 @@ namespace FormFillerCore.Controllers
         {
             int fid = await _formService.GetFormIDbyDataType(did);
 
-            _datamapService.AutoMapItems(did, fid);
+            await _datamapService.AutoMapItems(did, fid);
 
             Dictionary<string, string> returndata = new Dictionary<string, string>();
 
@@ -243,6 +243,18 @@ namespace FormFillerCore.Controllers
                 model.FormModel.TempFile = nform.FormModel.TempFile;
                 await _formService.FormUpdate(model.FormModel);
             }
+
+            var fdtype = await _formService.FullFormInfo(id);
+
+            List<string> ffields = new List<string>();
+
+            if (fdtype.DataType.DataType.ToString() != "HTMLSTRING")
+            {
+                ffields = _datamapService.GetFormFields(id);
+            }
+            ViewBag.DataType = Convert.ToInt32(fdtype.DataType.FormDataTypeID);
+
+            ViewBag.FormFields = ffields;
 
             return View("Edit", model);
         }
