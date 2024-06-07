@@ -67,7 +67,7 @@ else
 {
     EventLog.WriteEntry(".NET Runtime", "Attempting Development Build");
 
-    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new VisualStudioCredential());
 }
 
 var connectionString = builder.Configuration["FormFillerConn"];
