@@ -25,7 +25,7 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(options =>
-    { 
+    {
         builder.Configuration.Bind("AzureAd", options);
         options.TokenValidationParameters.NameClaimType = "Application Token";
     }, options => { builder.Configuration.Bind("AzureAd", options); });
